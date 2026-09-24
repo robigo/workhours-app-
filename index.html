@@ -54,7 +54,7 @@
 <div id="days"></div>
 </section>
 
-<div class="foot">WorkTime • גרסת מובייל • v7</div>
+<div class="foot">WorkTime • גרסת מובייל • v8</div>
 </main>
 
 <script>
@@ -114,9 +114,9 @@ const known={
  ['11/09/2026','ו׳','יום אופציונלי','08:00','17:00','8.50'],
  ['13/09/2026','א׳','מנוחה בתשלום','06:10','12:05','5.92'],
  ['14/09/2026','ב׳','חופשה','—','—','8.60'],
- ['15/09/2026','ג׳','חופשה','—','—','8.60'],
+ ['15/09/2026','ג׳','אין רישום בדוח','—','—','8.60'],
  ['16/09/2026','ד׳','עבודה','08:02','17:00','8.47'],
- ['17/09/2026','ה׳','עבודה','08:00','19:00','—']
+ ['17/09/2026','ה׳','עבודה','08:00','19:00','8.60']
  ]}
 };
 function pad(n){return String(n).padStart(2,'0')}
@@ -178,7 +178,7 @@ function renderCalendarMonth(year,month){
    const live=(saved[year+'-'+month]||{})[iso] || (saved[prevYear+'-'+prevMonth]||{})[iso] || {};
    const r=verified[dd];
    if(r){
-     rows.push({date:dd,day:r[1],status:r[2],in:r[3],out:r[4],paid:r[5],source:'דוח'});
+     rows.push({date:dd,day:r[1],status:r[2],in:r[3],out:r[4],paid:r[5],source:'דוח רשמי'});
    } else if(live.in||live.out){
      const h=workedHours(live);
      rows.push({date:dd,day:dayName(d),status:live.in&&live.out?'דווח':'כניסה פתוחה',in:live.in||'—',out:live.out||'—',paid:h?h.toFixed(2):'—',source:'דיווח'});
