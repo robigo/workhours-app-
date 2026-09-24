@@ -85,14 +85,46 @@ function save(o){localStorage.setItem('worktimeReports',JSON.stringify(o))}
 function renderMonths(){
  months.innerHTML=names.map((n,i)=>`<button type="button" class="month ${i+1===m?'active':''}" data-m="${i+1}"><b>${i+1}</b><small>${n}</small></button>`).join('');
 }
+function mins(t){if(!t)return 0;const [h,mm]=t.split(':').map(Number);return h*60+mm}
+function workedHours(v){if(!v||!v.in||!v.out)return 0;let x=mins(v.out)-mins(v.in);if(x<0)x+=1440;return x/60}
+function dayName(d){return ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'][d.getDay()]}
+function periodDays(year,month){
+ const [a,b]=bounds(year,month), out=[]; let d=new Date(a);
+ while(d<=b){out.push(new Date(d));d.setDate(d.getDate()+1)}
+ return out;
+}
+function renderDynamicDays(year,month){
+ const saved=store()[key()]||{};
+ const rows=periodDays(year,month).map(d=>{
+   const iso=isoLocal(d), v=saved[iso]||{}, h=workedHours(v);
+   return {iso,d,v,h};
+ });
+ const total=rows.reduce((s,r)=>s+r.h,0);
+ const completed=rows.filter(r=>r.v.in&&r.v.out).length;
+ const open=rows.filter(r=>r.v.in&&!r.v.out).length;
+ summary.innerHTML=[
+   ['שעות שדווחו',total.toFixed(2)],
+   ['ימים מלאים',completed],
+   ['כניסות פתוחות',open],
+   ['ימי התקופה',rows.length]
+ ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
+ days.innerHTML='<div class="daily">'+rows.map(r=>{
+   const dd=pad(r.d.getDate())+'/'+pad(r.d.getMonth()+1)+'/'+r.d.getFullYear();
+   const has=r.v.in||r.v.out;
+   return `<article class="day"><div class="daytop"><div><b dir="ltr">${dd}</b><div class="hint">יום ${dayName(r.d)}</div></div><span class="badge ${has?'ok':'off'}">${r.v.in&&r.v.out?'דווח':'ללא דיווח'}</span></div><div class="hours"><div class="chip">כניסה<b>${r.v.in||'—'}</b></div><div class="chip">יציאה<b>${r.v.out||'—'}</b></div><div class="chip">סה״כ<b>${r.h?r.h.toFixed(2):'—'}</b></div><div class="chip">סטטוס<b>${r.v.in&&r.v.out?'הושלם':(r.v.in?'כניסה פתוחה':'—')}</b></div></div></article>`;
+ }).join('')+'</div>';
+}
 function render(){
  const year=+y.value; period.textContent=range(year,m); renderMonths();
  const d=known[key()];
- summary.innerHTML=d?[
- ['סה״כ שעות',d.sum[0]],['שעות רגילות',d.sum[1]],['125%',d.sum[2]],['150%',d.sum[3]]
- ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join(''):'';
- if(d) days.innerHTML='<div class="daily">'+d.days.map(r=>`<article class="day"><div class="daytop"><div><b>${r[0]}</b><div class="hint">יום ${r[1]}</div></div><span class="badge ${r[2]==='עבודה'?'ok':'off'}">${r[2]}</span></div><div class="hours"><div class="chip">כניסה<b>${r[3]}</b></div><div class="chip">יציאה<b>${r[4]}</b></div><div class="chip">לתשלום<b>${r[5]}</b></div><div class="chip">סטטוס<b>${r[2]}</b></div></div></article>`).join('')+'</div>';
- else days.innerHTML=`<div class="empty">אין עדיין דוח רשמי לתקופה <strong dir="ltr">${range(year,m)}</strong>.<br>אפשר כבר לדווח כניסה ויציאה בתקופה הזו.</div>`;
+ if(d){
+   summary.innerHTML=[
+    ['סה״כ שעות',d.sum[0]],['שעות רגילות',d.sum[1]],['125%',d.sum[2]],['150%',d.sum[3]]
+   ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
+   days.innerHTML='<div class="daily">'+d.days.map(r=>`<article class="day"><div class="daytop"><div><b>${r[0]}</b><div class="hint">יום ${r[1]}</div></div><span class="badge ${r[2]==='עבודה'?'ok':'off'}">${r[2]}</span></div><div class="hours"><div class="chip">כניסה<b>${r[3]}</b></div><div class="chip">יציאה<b>${r[4]}</b></div><div class="chip">לתשלום<b>${r[5]}</b></div><div class="chip">סטטוס<b>${r[2]}</b></div></div></article>`).join('')+'</div>';
+ } else {
+   renderDynamicDays(year,m);
+ }
  setupReporting();
 }
 function setupReporting(){
@@ -106,7 +138,7 @@ function hm(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes()
 function setReport(type,t){
  if(!date.value){msg.textContent='בחר תאריך.';return}
  const all=store();all[key()]=all[key()]||{};all[key()][date.value]=all[key()][date.value]||{};all[key()][date.value][type]=t;save(all);
- msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog();
+ msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog(); if(!known[key()]) renderDynamicDays(+y.value,m);
 }
 function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
@@ -118,7 +150,7 @@ y.addEventListener('change',render);
 document.getElementById('inBtn').onclick=()=>{manualType='in';document.getElementById('manualBtn').textContent='שמור שעה ידנית ככניסה';setReport('in',hm())};
 document.getElementById('outBtn').onclick=()=>{manualType='out';document.getElementById('manualBtn').textContent='שמור שעה ידנית כיציאה';setReport('out',hm())};
 document.getElementById('manualBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport(manualType,time.value)};
-log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);renderLog()});
+log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);renderLog();if(!known[key()]) renderDynamicDays(+y.value,m)});
 render();
 })();
 </script>
