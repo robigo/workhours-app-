@@ -54,7 +54,7 @@
 <div id="days"></div>
 </section>
 
-<div class="foot">WorkTime • גרסת מובייל</div>
+<div class="foot">WorkTime • גרסת מובייל • v4</div>
 </main>
 
 <script>
@@ -149,7 +149,15 @@ function render(){
    summary.innerHTML=[
     ['סה״כ שעות',d.sum[0]],['שעות רגילות',d.sum[1]],['125%',d.sum[2]],['150%',d.sum[3]]
    ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
-   days.innerHTML='<div class="daily">'+d.days.map(r=>`<article class="day"><div class="daytop"><div><b>${r[0]}</b><div class="hint">יום ${r[1]}</div></div><span class="badge ${r[2]==='עבודה'?'ok':'off'}">${r[2]}</span></div><div class="hours"><div class="chip">כניסה<b>${r[3]}</b></div><div class="chip">יציאה<b>${r[4]}</b></div><div class="chip">לתשלום<b>${r[5]}</b></div><div class="chip">סטטוס<b>${r[2]}</b></div></div></article>`).join('')+'</div>';
+   const byDate={};
+   d.days.forEach(r=>byDate[r[0]]=r);
+   const fullRows=periodDays(year,m).map(dt=>{
+     const dd=pad(dt.getDate())+'/'+pad(dt.getMonth()+1)+'/'+dt.getFullYear();
+     if(byDate[dd]) return byDate[dd];
+     const saturday=dt.getDay()===6;
+     return [dd,dayName(dt),saturday?'מנוחה':'אין רישום','—','—','—'];
+   });
+   days.innerHTML='<div class="daily">'+fullRows.map(r=>`<article class="day"><div class="daytop"><div><b dir="ltr">${r[0]}</b><div class="hint">יום ${r[1]}</div></div><span class="badge ${r[2]==='עבודה'?'ok':'off'}">${r[2]}</span></div><div class="hours"><div class="chip">כניסה<b>${r[3]}</b></div><div class="chip">יציאה<b>${r[4]}</b></div><div class="chip">לתשלום<b>${r[5]}</b></div><div class="chip">סטטוס<b>${r[2]}</b></div></div></article>`).join('')+'</div>';
  } else {
    renderDynamicDays(year,m);
  }
