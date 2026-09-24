@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>WorkTime</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#102033;--muted:#6b7a90;--line:#e4eaf2;--blue:#2563eb;--violet:#7c3aed;--green:#047857;--red:#b91c1c;--shadow:0 10px 28px rgba(31,53,85,.08)}
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:linear-gradient(180deg,#edf4ff,#f8fafc 340px);color:var(--text)}
+.app{width:100%;max-width:980px;margin:auto;padding:10px}.top{display:flex;gap:12px;align-items:center;margin:8px 0 12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-weight:900}.top h1{margin:0;font-size:23px}.top p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.hero{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:22px;padding:16px;box-shadow:var(--shadow)}.hero h2{margin:0 0 5px;font-size:22px}.hero p{margin:0;color:#dbeafe;font-size:13px;line-height:1.5}.picker{margin-top:14px;padding:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:15px}.pickhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.year{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:8px;font:inherit;font-weight:800}.year option{color:#111}.months{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:10px}.month{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;border-radius:11px;padding:9px 4px;font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.month b{display:block;font-size:15px}.month small{display:block;color:#dbeafe;font-size:10px;margin-top:2px}.month.active{background:#fff;color:#0f172a}.month.active small{color:#64748b}.period{margin-top:10px;padding:10px 12px;border-radius:11px;background:rgba(255,255,255,.1);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:var(--shadow)}.label{font-size:11px;color:var(--muted)}.value{font-size:22px;font-weight:900;margin-top:5px}.sub{font-size:11px;color:var(--muted);margin-top:4px}
+.report{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);margin-top:12px}.report h3{margin:0 0 4px}.hint{color:var(--muted);font-size:12px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.controls label{font-size:12px;color:var(--muted);display:grid;gap:5px}.controls input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.btn{border:0;border-radius:12px;padding:12px;font:inherit;font-weight:900}.in{background:#dcfce7;color:#166534}.out{background:#fee2e2;color:#991b1b}.manual{background:#dbeafe;color:#1d4ed8;grid-column:1/-1}.msg{margin-top:9px;font-size:12px;color:var(--muted)}.log{display:grid;gap:8px;margin-top:12px}.row{display:grid;grid-template-columns:1.2fr .8fr .8fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:12px}.row button{border:0;background:#f8fafc;border-radius:8px;padding:6px 8px}
+.section{margin-top:12px}.section h3{margin:0 0 9px}.empty{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;color:var(--muted);box-shadow:var(--shadow)}.daily{display:grid;gap:8px}.day{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px}.daytop{display:flex;justify-content:space-between;gap:8px}.badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800}.ok{background:#ecfdf5;color:#047857}.off{background:#f3f4f6;color:#6b7280}.hours{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.chip{background:#f8fafc;border-radius:9px;padding:8px;font-size:11px}.chip b{display:block;margin-top:3px}.foot{text-align:center;color:var(--muted);font-size:11px;margin:18px 0}
+@media(max-width:680px){.app{padding:8px}.months{grid-template-columns:repeat(3,1fr)}.month{min-height:54px}.grid{grid-template-columns:repeat(2,1fr)}.controls,.actions{grid-template-columns:1fr}.manual{grid-column:auto}.row{grid-template-columns:1fr 1fr}.row button{grid-column:1/-1;width:100%}.hours{grid-template-columns:1fr 1fr}.hero{border-radius:18px}}
+</style>
+</head>
+<body>
+<main class="app">
+<div class="top"><div class="logo">WT</div><div><h1>WorkTime</h1><p>נוכחות ושעות נוספות</p></div></div>
+
+<section class="hero">
+<h2>דוח נוכחות</h2>
+<p>מחזור העבודה מתחיל ב־23 בחודש ומסתיים ב־22 בחודש הבא.</p>
+<div class="picker">
+<div class="pickhead"><strong>בחר חודש התחלה</strong>
+<select id="year" class="year"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
+<div id="months" class="months"></div>
+<div id="period" class="period"></div>
+</div>
+</section>
+
+<section id="summary" class="grid"></section>
+
+<section class="report">
+<h3>דיווח כניסה / יציאה</h3>
+<div id="reportPeriod" class="hint"></div>
+<div class="controls">
+<label>תאריך<input id="date" type="date"></label>
+<label>שעה ידנית<input id="time" type="time"></label>
+</div>
+<div class="actions">
+<button id="inBtn" class="btn in">כניסה עכשיו</button>
+<button id="outBtn" class="btn out">יציאה עכשיו</button>
+<button id="manualBtn" class="btn manual">שמור שעה ידנית ככניסה</button>
+</div>
+<div id="msg" class="msg">בחר תאריך ואז דווח כניסה או יציאה.</div>
+<div id="log" class="log"></div>
+</section>
+
+<section class="section">
+<h3>ימי התקופה</h3>
+<div id="days"></div>
+</section>
+
+<div class="foot">WorkTime • גרסת מובייל</div>
+</main>
+
+<script>
+(()=> {
+const names=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const y=document.getElementById('year'), months=document.getElementById('months'), period=document.getElementById('period');
+const summary=document.getElementById('summary'), days=document.getElementById('days');
+const date=document.getElementById('date'), time=document.getElementById('time'), msg=document.getElementById('msg'), log=document.getElementById('log');
+let m=9, manualType='in';
+const known={
+ '2026-8':{sum:[182,159.40,35.50,17.87],days:[
+ ['23/08/2026','א׳','עבודה','08:00','17:00','8.00'],
+ ['24/08/2026','ב׳','עבודה','08:00','17:00','8.00'],
+ ['25/08/2026','ג׳','עבודה','08:00','17:00','8.00'],
+ ['26/08/2026','ד׳','עבודה','08:00','17:00','8.00'],
+ ['27/08/2026','ה׳','עבודה','08:00','17:00','8.00'],
+ ['28/08/2026','ו׳','מנוחה','—','—','0.00'],
+ ['29/08/2026','ש׳','מנוחה','—','—','0.00']
+ ]}
+};
+function pad(n){return String(n).padStart(2,'0')}
+function range(year,month){const nm=month===12?1:month+1,ny=month===12?year+1:year;return `23/${pad(month)}/${year} → 22/${pad(nm)}/${ny}`}
+function bounds(year,month){const a=new Date(year,month-1,23,12),b=new Date(month===12?year+1:year,month===12?0:month,22,12);return[a,b]}
+function isoLocal(d){const yy=d.getFullYear(),mm=pad(d.getMonth()+1),dd=pad(d.getDate());return `${yy}-${mm}-${dd}`}
+function key(){return y.value+'-'+m}
+function store(){try{return JSON.parse(localStorage.getItem('worktimeReports')||'{}')}catch{return {}}}
+function save(o){localStorage.setItem('worktimeReports',JSON.stringify(o))}
+function renderMonths(){
+ months.innerHTML=names.map((n,i)=>`<button type="button" class="month ${i+1===m?'active':''}" data-m="${i+1}"><b>${i+1}</b><small>${n}</small></button>`).join('');
+}
+function render(){
+ const year=+y.value; period.textContent=range(year,m); renderMonths();
+ const d=known[key()];
+ summary.innerHTML=d?[
+ ['סה״כ שעות',d.sum[0]],['שעות רגילות',d.sum[1]],['125%',d.sum[2]],['150%',d.sum[3]]
+ ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join(''):'';
+ if(d) days.innerHTML='<div class="daily">'+d.days.map(r=>`<article class="day"><div class="daytop"><div><b>${r[0]}</b><div class="hint">יום ${r[1]}</div></div><span class="badge ${r[2]==='עבודה'?'ok':'off'}">${r[2]}</span></div><div class="hours"><div class="chip">כניסה<b>${r[3]}</b></div><div class="chip">יציאה<b>${r[4]}</b></div><div class="chip">לתשלום<b>${r[5]}</b></div><div class="chip">סטטוס<b>${r[2]}</b></div></div></article>`).join('')+'</div>';
+ else days.innerHTML=`<div class="empty">אין עדיין דוח רשמי לתקופה <strong dir="ltr">${range(year,m)}</strong>.<br>אפשר כבר לדווח כניסה ויציאה בתקופה הזו.</div>`;
+ setupReporting();
+}
+function setupReporting(){
+ const [a,b]=bounds(+y.value,m); date.min=isoLocal(a);date.max=isoLocal(b);
+ const now=new Date(); now.setHours(12,0,0,0); const pick=now<a?a:(now>b?b:now);
+ if(!date.value||date.value<date.min||date.value>date.max) date.value=isoLocal(pick);
+ document.getElementById('reportPeriod').innerHTML='לתקופה <strong dir="ltr">'+range(+y.value,m)+'</strong>';
+ renderLog();
+}
+function hm(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())}
+function setReport(type,t){
+ if(!date.value){msg.textContent='בחר תאריך.';return}
+ const all=store();all[key()]=all[key()]||{};all[key()][date.value]=all[key()][date.value]||{};all[key()][date.value][type]=t;save(all);
+ msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog();
+}
+function renderLog(){
+ const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
+ log.innerHTML=rows.length?rows.map(([d,v])=>`<div class="row"><b dir="ltr">${d.split('-').reverse().join('/')}</b><span>כניסה: <b>${v.in||'—'}</b></span><span>יציאה: <b>${v.out||'—'}</b></span><button data-del="${d}">מחק</button></div>`).join(''):'<div class="hint" style="text-align:center;padding:10px">עדיין אין דיווחים בתקופה הזו.</div>';
+}
+months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
+months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;render()},{passive:false});
+y.addEventListener('change',render);
+document.getElementById('inBtn').onclick=()=>{manualType='in';document.getElementById('manualBtn').textContent='שמור שעה ידנית ככניסה';setReport('in',hm())};
+document.getElementById('outBtn').onclick=()=>{manualType='out';document.getElementById('manualBtn').textContent='שמור שעה ידנית כיציאה';setReport('out',hm())};
+document.getElementById('manualBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport(manualType,time.value)};
+log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);renderLog()});
+render();
+})();
+</script>
+</body>
+</html>
