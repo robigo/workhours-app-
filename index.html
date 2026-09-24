@@ -43,7 +43,7 @@
 <div class="actions">
 <button id="inBtn" class="btn in">כניסה עכשיו</button>
 <button id="outBtn" class="btn out">יציאה עכשיו</button>
-<button id="manualBtn" class="btn manual">שמור שעה ידנית ככניסה</button>
+<button id="manualInBtn" class="btn manual">שמור כניסה ידנית</button><button id="manualOutBtn" class="btn manual">שמור יציאה ידנית</button>
 </div>
 <div id="msg" class="msg">בחר תאריך ואז דווח כניסה או יציאה.</div>
 <div id="log" class="log"></div>
@@ -54,7 +54,7 @@
 <div id="days"></div>
 </section>
 
-<div class="foot">WorkTime • גרסת מובייל • v8</div>
+<div class="foot">WorkTime • גרסת מובייל • v9</div>
 </main>
 
 <script>
@@ -116,7 +116,8 @@ const known={
  ['14/09/2026','ב׳','חופשה','—','—','8.60'],
  ['15/09/2026','ג׳','אין רישום בדוח','—','—','8.60'],
  ['16/09/2026','ד׳','עבודה','08:02','17:00','8.47'],
- ['17/09/2026','ה׳','עבודה','08:00','19:00','8.60']
+ ['17/09/2026','ה׳','עבודה','08:00','19:00','8.60'],
+ ['20/09/2026','א׳','עבודה','08:02','17:00','8.47']
  ]}
 };
 function pad(n){return String(n).padStart(2,'0')}
@@ -183,7 +184,7 @@ function renderCalendarMonth(year,month){
      const h=workedHours(live);
      rows.push({date:dd,day:dayName(d),status:live.in&&live.out?'דווח':'כניסה פתוחה',in:live.in||'—',out:live.out||'—',paid:h?h.toFixed(2):'—',source:'דיווח'});
    } else if((month===7 && d.getDate()>=23) || month!==7){
-     rows.push({date:dd,day:dayName(d),status:d.getDay()===6?'מנוחה':'אין רישום',in:'—',out:'—',paid:'—',source:''});
+     rows.push({date:dd,day:dayName(d),status:d.getDay()===6?'מנוחה':'לא מופיע בדוח',in:'—',out:'—',paid:'—',source:''});
    }
  }
  const paidTotal=rows.reduce((s,r)=>s+(parseFloat(r.paid)||0),0);
@@ -224,9 +225,10 @@ function renderLog(){
 months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
 months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;render()},{passive:false});
 y.addEventListener('change',render);
-document.getElementById('inBtn').onclick=()=>{manualType='in';document.getElementById('manualBtn').textContent='שמור שעה ידנית ככניסה';setReport('in',hm())};
-document.getElementById('outBtn').onclick=()=>{manualType='out';document.getElementById('manualBtn').textContent='שמור שעה ידנית כיציאה';setReport('out',hm())};
-document.getElementById('manualBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport(manualType,time.value)};
+document.getElementById('inBtn').onclick=()=>setReport('in',hm());
+document.getElementById('outBtn').onclick=()=>setReport('out',hm());
+document.getElementById('manualInBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('in',time.value)};
+document.getElementById('manualOutBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('out',time.value)};
 log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);renderLog();renderCalendarMonth(+y.value,m)});
 render();
 })();
