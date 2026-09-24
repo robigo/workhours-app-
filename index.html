@@ -22,9 +22,9 @@
 
 <section class="hero">
 <h2>דוח נוכחות</h2>
-<p>מחזור העבודה מתחיל ב־23 בחודש ומסתיים ב־22 בחודש הבא.</p>
+<p>בחירת חודש מציגה את ימי אותו חודש. נתוני השכר עדיין משויכים למחזור 23→22.</p>
 <div class="picker">
-<div class="pickhead"><strong>בחר חודש התחלה</strong>
+<div class="pickhead"><strong>בחר חודש</strong>
 <select id="year" class="year"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
 <div id="months" class="months"></div>
 <div id="period" class="period"></div>
@@ -54,7 +54,7 @@
 <div id="days"></div>
 </section>
 
-<div class="foot">WorkTime • גרסת מובייל • v4</div>
+<div class="foot">WorkTime • גרסת מובייל • v5</div>
 </main>
 
 <script>
@@ -142,39 +142,64 @@ function renderDynamicDays(year,month){
    return `<article class="day"><div class="daytop"><div><b dir="ltr">${dd}</b><div class="hint">יום ${dayName(r.d)}</div></div><span class="badge ${has?'ok':'off'}">${r.v.in&&r.v.out?'דווח':'ללא דיווח'}</span></div><div class="hours"><div class="chip">כניסה<b>${r.v.in||'—'}</b></div><div class="chip">יציאה<b>${r.v.out||'—'}</b></div><div class="chip">סה״כ<b>${r.h?r.h.toFixed(2):'—'}</b></div><div class="chip">סטטוס<b>${r.v.in&&r.v.out?'הושלם':(r.v.in?'כניסה פתוחה':'—')}</b></div></div></article>`;
  }).join('')+'</div>';
 }
-function render(){
- const year=+y.value; period.textContent=range(year,m); renderMonths();
- const d=known[key()];
- if(d){
-   summary.innerHTML=[
-    ['סה״כ שעות',d.sum[0]],['שעות רגילות',d.sum[1]],['125%',d.sum[2]],['150%',d.sum[3]]
-   ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
-   const byDate={};
-   d.days.forEach(r=>byDate[r[0]]=r);
-   const fullRows=periodDays(year,m).map(dt=>{
-     const dd=pad(dt.getDate())+'/'+pad(dt.getMonth()+1)+'/'+dt.getFullYear();
-     if(byDate[dd]) return byDate[dd];
-     const saturday=dt.getDay()===6;
-     return [dd,dayName(dt),saturday?'מנוחה':'אין רישום','—','—','—'];
-   });
-   days.innerHTML='<div class="daily">'+fullRows.map(r=>`<article class="day"><div class="daytop"><div><b dir="ltr">${r[0]}</b><div class="hint">יום ${r[1]}</div></div><span class="badge ${r[2]==='עבודה'?'ok':'off'}">${r[2]}</span></div><div class="hours"><div class="chip">כניסה<b>${r[3]}</b></div><div class="chip">יציאה<b>${r[4]}</b></div><div class="chip">לתשלום<b>${r[5]}</b></div><div class="chip">סטטוס<b>${r[2]}</b></div></div></article>`).join('')+'</div>';
- } else {
-   renderDynamicDays(year,m);
+function reportRowMap(){
+ const map={};
+ Object.values(known).forEach(period=>{
+   (period.days||[]).forEach(r=>{ map[r[0]]=r; });
+ });
+ return map;
+}
+function renderCalendarMonth(year,month){
+ const verified=reportRowMap();
+ const first=new Date(year,month-1,1,12), last=new Date(year,month,0,12);
+ const saved=store();
+ const rows=[];
+ for(let d=new Date(first); d<=last; d.setDate(d.getDate()+1)){
+   const dd=pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();
+   const iso=isoLocal(d);
+   const prevMonth = month===1?12:month-1;
+   const prevYear = month===1?year-1:year;
+   const live=(saved[year+'-'+month]||{})[iso] || (saved[prevYear+'-'+prevMonth]||{})[iso] || {};
+   const r=verified[dd];
+   if(r){
+     rows.push({date:dd,day:r[1],status:r[2],in:r[3],out:r[4],paid:r[5],source:'דוח'});
+   } else if(live.in||live.out){
+     const h=workedHours(live);
+     rows.push({date:dd,day:dayName(d),status:live.in&&live.out?'דווח':'כניסה פתוחה',in:live.in||'—',out:live.out||'—',paid:h?h.toFixed(2):'—',source:'דיווח'});
+   } else if((month===7 && d.getDate()>=23) || month!==7){
+     rows.push({date:dd,day:dayName(d),status:d.getDay()===6?'מנוחה':'אין רישום',in:'—',out:'—',paid:'—',source:''});
+   }
  }
+ const paidTotal=rows.reduce((s,r)=>s+(parseFloat(r.paid)||0),0);
+ summary.innerHTML=[
+   ['סה״כ מוצג',paidTotal.toFixed(2)],
+   ['ימים עם נתון',rows.filter(r=>r.in!=='—'||r.status==='חופשה').length],
+   ['דיווחים חיים',rows.filter(r=>r.source==='דיווח').length],
+   ['ימים בחודש',rows.length]
+ ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
+ days.innerHTML='<div class="daily">'+rows.map(r=>`<article class="day"><div class="daytop"><div><b dir="ltr">${r.date}</b><div class="hint">יום ${r.day}${r.source?' • '+r.source:''}</div></div><span class="badge ${r.status==='עבודה'||r.status==='דווח'?'ok':'off'}">${r.status}</span></div><div class="hours"><div class="chip">כניסה<b>${r.in}</b></div><div class="chip">יציאה<b>${r.out}</b></div><div class="chip">לתשלום<b>${r.paid}</b></div><div class="chip">סטטוס<b>${r.status}</b></div></div></article>`).join('')+'</div>';
+ period.innerHTML='תצוגת חודש: <strong dir="ltr">'+pad(month)+'/'+year+'</strong>';
+}
+function render(){
+ const year=+y.value;
+ renderMonths();
+ renderCalendarMonth(year,m);
  setupReporting();
 }
 function setupReporting(){
- const [a,b]=bounds(+y.value,m); date.min=isoLocal(a);date.max=isoLocal(b);
+ const year=+y.value;
+ const a=new Date(year,m-1,(m===7?23:1),12), b=new Date(year,m,0,12);
+ date.min=isoLocal(a);date.max=isoLocal(b);
  const now=new Date(); now.setHours(12,0,0,0); const pick=now<a?a:(now>b?b:now);
  if(!date.value||date.value<date.min||date.value>date.max) date.value=isoLocal(pick);
- document.getElementById('reportPeriod').innerHTML='לתקופה <strong dir="ltr">'+range(+y.value,m)+'</strong>';
+ document.getElementById('reportPeriod').innerHTML='דיווח עבור חודש <strong dir="ltr">'+pad(m)+'/'+year+'</strong>';
  renderLog();
 }
 function hm(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())}
 function setReport(type,t){
  if(!date.value){msg.textContent='בחר תאריך.';return}
  const all=store();all[key()]=all[key()]||{};all[key()][date.value]=all[key()][date.value]||{};all[key()][date.value][type]=t;save(all);
- msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog(); if(!known[key()]) renderDynamicDays(+y.value,m);
+ msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog(); renderCalendarMonth(+y.value,m);
 }
 function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
@@ -186,7 +211,7 @@ y.addEventListener('change',render);
 document.getElementById('inBtn').onclick=()=>{manualType='in';document.getElementById('manualBtn').textContent='שמור שעה ידנית ככניסה';setReport('in',hm())};
 document.getElementById('outBtn').onclick=()=>{manualType='out';document.getElementById('manualBtn').textContent='שמור שעה ידנית כיציאה';setReport('out',hm())};
 document.getElementById('manualBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport(manualType,time.value)};
-log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);renderLog();if(!known[key()]) renderDynamicDays(+y.value,m)});
+log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);renderLog();renderCalendarMonth(+y.value,m)});
 render();
 })();
 </script>
