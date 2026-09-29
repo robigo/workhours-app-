@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#102033;--muted:#6b7a90;--line:#e4eaf2;--blue:#2563eb;--violet:#7c3aed;--green:#047857;--red:#b91c1c;--shadow:0 10px 28px rgba(31,53,85,.08)}
 *{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:linear-gradient(180deg,#edf4ff,#f8fafc 340px);color:var(--text)}
-.app{width:100%;max-width:980px;margin:auto;padding:10px}.top{display:flex;gap:12px;align-items:center;margin:8px 0 12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-weight:900}.top h1{margin:0;font-size:23px}.top p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.app{width:100%;max-width:980px;margin:auto;padding:10px}.authbar{display:flex;gap:8px;align-items:center;margin-inline-start:auto}.authbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;font:inherit;font-weight:800}.authstate{font-size:11px;color:var(--muted)}.authbox{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin:10px 0}.authbox.show{display:block}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.authgrid input{border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}.syncpill{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#3730a3;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800}.top{display:flex;gap:12px;align-items:center;margin:8px 0 12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-weight:900}.top h1{margin:0;font-size:23px}.top p{margin:3px 0 0;color:var(--muted);font-size:13px}
 .hero{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:22px;padding:16px;box-shadow:var(--shadow)}.hero h2{margin:0 0 5px;font-size:22px}.hero p{margin:0;color:#dbeafe;font-size:13px;line-height:1.5}.picker{margin-top:14px;padding:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:15px}.pickhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.year{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:8px;font:inherit;font-weight:800}.year option{color:#111}.months{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:10px}.month{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;border-radius:11px;padding:9px 4px;font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.month b{display:block;font-size:15px}.month small{display:block;color:#dbeafe;font-size:10px;margin-top:2px}.month.active{background:#fff;color:#0f172a}.month.active small{color:#64748b}.period{margin-top:10px;padding:10px 12px;border-radius:11px;background:rgba(255,255,255,.1);font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:var(--shadow)}.label{font-size:11px;color:var(--muted)}.value{font-size:22px;font-weight:900;margin-top:5px}.sub{font-size:11px;color:var(--muted);margin-top:4px}
 .report{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);margin-top:12px}.report h3{margin:0 0 4px}.hint{color:var(--muted);font-size:12px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.controls label{font-size:12px;color:var(--muted);display:grid;gap:5px}.controls input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}.editbox{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.editbox h4{margin:0 0 8px}.editgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.editgrid label{font-size:12px;color:var(--muted);display:grid;gap:5px}.editgrid input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}.editactions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}.saveedit{background:#ede9fe;color:#5b21b6}.clearedit{background:#f3f4f6;color:#4b5563}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.btn{border:0;border-radius:12px;padding:12px;font:inherit;font-weight:900}.in{background:#dcfce7;color:#166534}.out{background:#fee2e2;color:#991b1b}.manual{background:#dbeafe;color:#1d4ed8;grid-column:1/-1}.msg{margin-top:9px;font-size:12px;color:var(--muted)}.log{display:grid;gap:8px;margin-top:12px}.row{display:grid;grid-template-columns:1.2fr .8fr .8fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:12px}.row button{border:0;background:#f8fafc;border-radius:8px;padding:6px 8px}
@@ -18,7 +18,20 @@
 </head>
 <body>
 <main class="app">
-<div class="top"><div class="logo">WT</div><div><h1>WorkTime</h1><p>נוכחות ושעות נוספות</p></div></div>
+<div class="top"><div class="logo">WT</div><div><h1>WorkTime</h1><p>נוכחות ושעות נוספות</p></div><div class="authbar"><span id="syncState" class="syncpill">מקומי</span><button id="authToggle" class="authbtn">התחברות</button></div></div>
+<section id="authBox" class="authbox">
+<h3 style="margin-top:0">חיבור לחשבון WorkTime</h3>
+<div class="authgrid">
+<input id="authEmail" type="email" placeholder="אימייל">
+<input id="authPassword" type="password" placeholder="סיסמה (לפחות 6 תווים)">
+</div>
+<div class="actions">
+<button id="signInBtn" class="btn in">התחבר</button>
+<button id="signUpBtn" class="btn manual">הרשמה</button>
+<button id="signOutBtn" class="btn out" style="display:none">התנתק</button>
+</div>
+<div id="authMsg" class="msg">לאחר התחברות הנתונים יסתנכרנו עם Supabase.</div>
+</section>
 
 <section class="hero">
 <h2>דוח נוכחות</h2>
@@ -98,11 +111,16 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v12</div>
+<div class="foot">WorkTime • גרסת מובייל • v13</div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (()=> {
+const SUPABASE_URL='https://cgtvhrgudjkqnsqyscem.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_ocpQP7OZIV4oXPT3m6QJIw_lG0Dzr5S';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let currentUser=null;
 const names=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const y=document.getElementById('year'), months=document.getElementById('months'), period=document.getElementById('period');
 const summary=document.getElementById('summary'), days=document.getElementById('days');
@@ -113,6 +131,7 @@ const attendanceTabBtn=document.getElementById('attendanceTabBtn'), salaryTabBtn
 const hourlyRate=document.getElementById('hourlyRate'), salaryExtras=document.getElementById('salaryExtras');
 const salaryRegular=document.getElementById('salaryRegular'), salary125=document.getElementById('salary125'), salary150=document.getElementById('salary150'), salaryPaidExtraHours=document.getElementById('salaryPaidExtraHours');
 const salaryPeriod=document.getElementById('salaryPeriod'), salaryGross=document.getElementById('salaryGross'), salaryBreakdown=document.getElementById('salaryBreakdown'), salaryNote=document.getElementById('salaryNote');
+const authBox=document.getElementById('authBox'), authToggle=document.getElementById('authToggle'), authEmail=document.getElementById('authEmail'), authPassword=document.getElementById('authPassword'), authMsg=document.getElementById('authMsg'), signOutBtn=document.getElementById('signOutBtn'), syncState=document.getElementById('syncState');
 let m=9, manualType='in';
 const known={
  '2026-7':{sum:[219.75,150.37,36.14,22.41],days:[
@@ -179,6 +198,77 @@ function store(){try{return JSON.parse(localStorage.getItem('worktimeReports')||
 function save(o){localStorage.setItem('worktimeReports',JSON.stringify(o))}
 function edits(){try{return JSON.parse(localStorage.getItem('worktimeEdits')||'{}')}catch{return {}}}
 function saveEdits(o){localStorage.setItem('worktimeEdits',JSON.stringify(o))}
+async function dbUpsertWorkEntry(workDate,inTime,outTime,source='manual',status='work'){
+ if(!currentUser)return;
+ const payload={user_id:currentUser.id,work_date:workDate,entry_time:inTime||null,exit_time:outTime||null,source,status};
+ const {error}=await sb.from('work_entries').upsert(payload,{onConflict:'user_id,work_date'});
+ if(error){syncState.textContent='שגיאת סנכרון'; console.error(error)} else syncState.textContent='מסונכרן';
+}
+async function dbDeleteWorkEntry(workDate){
+ if(!currentUser)return;
+ const {error}=await sb.from('work_entries').delete().eq('user_id',currentUser.id).eq('work_date',workDate);
+ if(error){syncState.textContent='שגיאת סנכרון';console.error(error)} else syncState.textContent='מסונכרן';
+}
+async function dbLoadWorkEntries(){
+ if(!currentUser)return;
+ syncState.textContent='מסנכרן…';
+ const {data,error}=await sb.from('work_entries').select('work_date,entry_time,exit_time,source,status').eq('user_id',currentUser.id).order('work_date');
+ if(error){syncState.textContent='שגיאת סנכרון';console.error(error);return}
+ const reports=store(), corr=edits();
+ for(const r of (data||[])){
+   const d=new Date(r.work_date+'T12:00:00');
+   const month=d.getMonth()+1, year=d.getFullYear();
+   const k=year+'-'+month;
+   reports[k]=reports[k]||{};
+   reports[k][r.work_date]={in:(r.entry_time||'').slice(0,5),out:(r.exit_time||'').slice(0,5)};
+   if(r.source==='manual') corr[r.work_date]={in:(r.entry_time||'').slice(0,5),out:(r.exit_time||'').slice(0,5)};
+ }
+ save(reports); saveEdits(corr); syncState.textContent='מסונכרן'; render();
+}
+async function dbSaveSalarySettings(){
+ if(!currentUser)return;
+ const payload={user_id:currentUser.id,hourly_rate:parseFloat(hourlyRate.value)||0,fixed_extras:parseFloat(salaryExtras.value)||0,multiplier_125:1.25,multiplier_150:1.5};
+ const {error}=await sb.from('salary_settings').upsert(payload,{onConflict:'user_id'});
+ if(error){syncState.textContent='שגיאת סנכרון';console.error(error)} else syncState.textContent='מסונכרן';
+}
+async function dbLoadSalarySettings(){
+ if(!currentUser)return;
+ const {data,error}=await sb.from('salary_settings').select('hourly_rate,fixed_extras').eq('user_id',currentUser.id).maybeSingle();
+ if(error){console.error(error);return}
+ if(data){
+   if(data.hourly_rate!=null) localStorage.setItem('worktimeHourlyRate',String(data.hourly_rate));
+   const state={}; try{Object.assign(state,JSON.parse(localStorage.getItem(salaryStateKey())||'{}'))}catch{}
+   state.extras=Number(data.fixed_extras||0); localStorage.setItem(salaryStateKey(),JSON.stringify(state));
+ }
+}
+async function migrateLocalToDb(){
+ if(!currentUser)return;
+ const reports=store(), corr=edits();
+ for(const [k,daysObj] of Object.entries(reports)){
+   for(const [workDate,v] of Object.entries(daysObj||{})){
+     if(v&& (v.in||v.out)) await dbUpsertWorkEntry(workDate,v.in||null,v.out||null,'clock','work');
+   }
+ }
+ for(const [workDate,v] of Object.entries(corr||{})){
+   if(v&&(v.in||v.out)) await dbUpsertWorkEntry(workDate,v.in||null,v.out||null,'manual','work');
+ }
+ await dbSaveSalarySettings();
+}
+async function refreshAuthUi(session){
+ currentUser=session?.user||null;
+ if(currentUser){
+   authToggle.textContent=currentUser.email||'מחובר';
+   signOutBtn.style.display='block';
+   syncState.textContent='מחובר';
+   await dbLoadSalarySettings();
+   await migrateLocalToDb();
+   await dbLoadWorkEntries();
+ }else{
+   authToggle.textContent='התחברות';
+   signOutBtn.style.display='none';
+   syncState.textContent='מקומי';
+ }
+}
 function renderMonths(){
  months.innerHTML=names.map((n,i)=>`<button type="button" class="month ${i+1===m?'active':''}" data-m="${i+1}"><b>${i+1}</b><small>${n}</small></button>`).join('');
 }
@@ -306,7 +396,8 @@ function calcSalary(saveState=true){
  if(saveState){
    localStorage.setItem('worktimeHourlyRate',hourlyRate.value||'');
    localStorage.setItem(salaryStateKey(),JSON.stringify({rate:hourlyRate.value||'',extras,reg,h125,h150,extraHours:extraH}));
-   salaryNote.textContent='החישוב נשמר במכשיר. זהו אומדן ברוטו לפני מסים, פנסיה וניכויים.';
+   salaryNote.textContent=currentUser?'החישוב נשמר ומסונכרן. זהו אומדן ברוטו לפני מסים, פנסיה וניכויים.':'החישוב נשמר במכשיר. זהו אומדן ברוטו לפני מסים, פנסיה וניכויים.';
+   dbSaveSalarySettings();
  }
 }
 function render(){
@@ -340,6 +431,7 @@ function setReport(type,t){
  if(!date.value){msg.textContent='בחר תאריך.';return}
  const all=store();all[key()]=all[key()]||{};all[key()][date.value]=all[key()][date.value]||{};all[key()][date.value][type]=t;save(all);
  msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog(); renderCalendarMonth(+y.value,m);
+ const cur=store()[key()]?.[date.value]||{}; dbUpsertWorkEntry(date.value,cur.in||null,cur.out||null,'clock','work');
 }
 function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
@@ -361,16 +453,35 @@ document.getElementById('saveEditBtn').onclick=()=>{
  if(!date.value){msg.textContent='בחר תאריך לעריכה.';return}
  if(!editIn.value && !editOut.value){msg.textContent='הזן לפחות שעת כניסה או יציאה.';return}
  const all=edits(); all[date.value]={in:editIn.value||'',out:editOut.value||''}; saveEdits(all);
+ dbUpsertWorkEntry(date.value,editIn.value||null,editOut.value||null,'manual','work');
  msg.textContent='התיקון הידני נשמר ל-'+date.value.split('-').reverse().join('/');
  renderCalendarMonth(+y.value,m);
 };
 document.getElementById('clearEditBtn').onclick=()=>{
  if(!date.value)return;
  const all=edits(); delete all[date.value]; saveEdits(all);
+ dbDeleteWorkEntry(date.value);
  msg.textContent='התיקון הידני בוטל.';
  loadEditorForDate(); renderCalendarMonth(+y.value,m);
 };
-log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);renderLog();renderCalendarMonth(+y.value,m)});
+log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);dbDeleteWorkEntry(b.dataset.del);renderLog();renderCalendarMonth(+y.value,m)});
+authToggle.addEventListener('click',()=>authBox.classList.toggle('show'));
+document.getElementById('signInBtn').addEventListener('click',async()=>{
+ authMsg.textContent='מתחבר…';
+ const {data,error}=await sb.auth.signInWithPassword({email:authEmail.value.trim(),password:authPassword.value});
+ if(error){authMsg.textContent='שגיאה: '+error.message;return}
+ authMsg.textContent='התחברת בהצלחה'; authBox.classList.remove('show'); await refreshAuthUi(data.session);
+});
+document.getElementById('signUpBtn').addEventListener('click',async()=>{
+ authMsg.textContent='יוצר חשבון…';
+ const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/'}});
+ if(error){authMsg.textContent='שגיאה: '+error.message;return}
+ authMsg.textContent=data.session?'החשבון נוצר והתחברת.':'החשבון נוצר. בדוק את האימייל לאישור ההרשמה.';
+ if(data.session) await refreshAuthUi(data.session);
+});
+signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';authBox.classList.remove('show');await refreshAuthUi(null)});
+sb.auth.onAuthStateChange((_event,session)=>{refreshAuthUi(session)});
+sb.auth.getSession().then(({data})=>refreshAuthUi(data.session));
 render();
 })();
 </script>
