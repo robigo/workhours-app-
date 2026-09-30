@@ -166,7 +166,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v43</div>
+<div class="foot">WorkTime • גרסת מובייל • v44</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -420,10 +420,11 @@ function renderCalendarMonth(year,month){
  const today=new Date(); today.setHours(23,59,59,999);
  const isCurrentMonth=year===today.getFullYear()&&month===today.getMonth()+1;
  const isFutureMonth=(year>today.getFullYear())||(year===today.getFullYear()&&month>today.getMonth()+1);
- const visibleRows=isCurrentMonth?rows.filter(r=>{
+ const visibleRowsBase=isCurrentMonth?rows.filter(r=>{
    const [dd,mm,yy]=r.date.split('/').map(Number);
    return new Date(yy,mm-1,dd,12)<=today;
  }):(isFutureMonth?[]:rows);
+ const visibleRows=visibleRowsBase.filter(r=>r.day!=='ש׳');
  const paidTotal=visibleRows.reduce((s,r)=>s+(parseFloat(r.paid)||0),0);
  summary.innerHTML=[
    ['סה״כ בתצוגת החודש',paidTotal.toFixed(2)],
