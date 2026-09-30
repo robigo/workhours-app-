@@ -124,7 +124,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v32</div>
+<div class="foot">WorkTime • גרסת מובייל • v33</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -531,9 +531,12 @@ async function loadSalary(){
  document.getElementById('regularHoursLabel').textContent=officialClosed?'שעות רגילות':'שעות רגילות — נצבר עד כה';
  document.getElementById('hours125Label').textContent=officialClosed?'שעות 125%':'שעות 125% — נצבר עד כה';
  document.getElementById('hours150Label').textContent=officialClosed?'שעות 150%':'שעות 150% — נצבר עד כה';
- const pendingCount=missing.length;
+ const todayIso=isoLocal(new Date());
+ const visibleDetails=officialClosed?auto.details:auto.details.filter(x=>x.date<=todayIso);
+ const pendingCount=visibleDetails.filter(x=>x.status!=='נכלל').length;
+ const calculatedCount=visibleDetails.filter(x=>x.status==='נכלל').length;
 
- salaryDaysDetail.innerHTML='<div class="period" style="margin-bottom:10px;background:#eef4ff;color:#0f172a"><strong>'+periodStatusText+'</strong>'+(officialClosed?'':' • '+auto.daysCount+' ימים חושבו • '+pendingCount+' ימים ממתינים')+'</div>'+auto.details.map(x=>'<div class="row"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span>'+(x.status==='נכלל'?('רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)):('<b>לא נכלל:</b> '+x.status))+'</span></div>').join('');
+ salaryDaysDetail.innerHTML='<div class="period" style="margin-bottom:10px;background:#eef4ff;color:#0f172a"><strong>'+periodStatusText+'</strong>'+(officialClosed?'':' • '+calculatedCount+' ימים חושבו • '+pendingCount+' ימים עד היום ממתינים')+'</div>'+visibleDetails.map(x=>'<div class="row"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span>'+(x.status==='נכלל'?('רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)):('<b>לא נכלל:</b> '+x.status))+'</span></div>').join('');
 
  if(officialClosed){
    salaryRegular.value=Number(official.sum[1]||0).toFixed(2);
@@ -544,7 +547,7 @@ async function loadSalary(){
    salaryRegular.value=auto.regular.toFixed(2);
    salary125.value=auto.h125.toFixed(2);
    salary150.value=auto.h150.toFixed(2);
-   salaryNote.textContent='מחזור פתוח: חושב אוטומטית מ-'+auto.daysCount+' ימים עם זוג כניסה+יציאה. '+missing.length+' ימים בתקופה אינם נכללים כרגע כי חסר בהם דיווח מלא. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ רק השעות שמעבר למכסת היום הן נוספות: 2 הראשונות 125% ומהשלישית 150%.';
+   salaryNote.textContent='מחזור פתוח: מוצגים רק ימים עד היום. חושבו '+calculatedCount+' ימים עם זוג כניסה+יציאה; '+pendingCount+' ימים עד היום עדיין חסרים דיווח מלא. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ רק השעות שמעבר למכסת היום הן נוספות: 2 הראשונות 125% ומהשלישית 150%.';
  } else if(state.reg!=null && (Number(state.reg)||Number(state.h125)||Number(state.h150))){
    salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
    salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
