@@ -92,7 +92,7 @@
 <section class="salarybox">
 <h3>שכר משוער — מחזור 23 → 22</h3>
 <div id="salaryPeriod" class="period" style="background:#f1f5f9;color:#0f172a"></div>
-<div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: 08:00–17:00 רגיל; כל זמן עבודה לפני 08:00 או אחרי 17:00 = 125%. יום ו׳: שעתיים ראשונות = 125%, ומהשעה השלישית = 150%. החישוב מתבצע רק בתוך מחזור השכר 23→22.</div>
+<div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: 08:00–17:00 רגיל; כל זמן עבודה אחרי 17:00 = 125%. יום ו׳: שעתיים ראשונות = 125%, ומהשעה השלישית = 150%. החישוב מתבצע רק בתוך מחזור השכר 23→22.</div>
 <div class="salarygrid">
 <label>שכר בסיס חודשי (₪)<input id="baseSalary" type="number" step="0.01" min="0" value="8500"></label>
 <label>תעריף שעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" value="46.70"></label>
@@ -122,7 +122,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v21</div>
+<div class="foot">WorkTime • גרסת מובייל • v22</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -417,9 +417,7 @@ function splitPayHoursForDay(d,entry){
  if(d.getDay()===6) return {regular:0,h125:0,h150:0,total};
  const regularStart=8*60, regularEnd=17*60;
  const regularMinutes=Math.max(0,Math.min(end,regularEnd)-Math.max(start,regularStart));
- const beforeStartMinutes=Math.max(0,Math.min(end,regularStart)-start);
- const afterEndMinutes=Math.max(0,end-Math.max(start,regularEnd));
- const overtime125Minutes=beforeStartMinutes+afterEndMinutes;
+ const overtime125Minutes=Math.max(0,end-Math.max(start,regularEnd));
  return {regular:regularMinutes/60,h125:overtime125Minutes/60,h150:0,total};
 }
 function calculatePeriodPayHours(year,month){
@@ -456,7 +454,7 @@ function loadSalary(){
    salaryRegular.value=auto.regular.toFixed(2);
    salary125.value=auto.h125.toFixed(2);
    salary150.value=auto.h150.toFixed(2);
-   salaryNote.textContent='חושב אוטומטית מ-'+auto.daysCount+' ימי דיווח בתקופה '+range(year,m)+'. א׳–ה׳ מחוץ ל־08:00–17:00 = 125%; ביום ו׳ שעתיים ראשונות = 125% ומהשעה השלישית = 150%.';
+   salaryNote.textContent='חושב אוטומטית מ-'+auto.daysCount+' ימי דיווח בתקופה '+range(year,m)+'. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ שעתיים ראשונות = 125% ומהשעה השלישית = 150%.';
  } else if(state.reg!=null && (Number(state.reg)||Number(state.h125)||Number(state.h150))){
    salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
    salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
@@ -479,7 +477,7 @@ function calcSalary(saveState=true){
    '<div class="calcrow"><span>תקופת שכר</span><b dir="ltr">'+range(+y.value,m)+'</b></div>'+
    '<div class="calcrow"><span>שכר בסיס</span><b>₪'+basePay.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>תקן / שעות רגילות מחושבות</span><b>'+std.toFixed(2)+' / '+reg.toFixed(2)+'</b></div>'+
-   '<div class="calcrow"><span>כלל א׳–ה׳</span><b>לפני 08:00 ואחרי 17:00 → 125%</b></div>'+
+   '<div class="calcrow"><span>כלל א׳–ה׳</span><b>אחרי 17:00 → 125%</b></div>'+
    '<div class="calcrow"><span>כלל יום ו׳</span><b>2 ש׳ ראשונות 125%, היתר 150%</b></div>'+
    '<div class="calcrow"><span>125%</span><b>₪'+p125.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>150%</span><b>₪'+p150.toFixed(2)+'</b></div>'+
