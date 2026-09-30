@@ -178,7 +178,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v45</div>
+<div class="foot">WorkTime • גרסת מובייל • v46</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -721,12 +721,19 @@ function render(){
 function setupReporting(){
  const year=+y.value;
  const a=new Date(year,m-1,(m===7?23:1),12), b=new Date(year,m,0,12);
- date.min=isoLocal(a);date.max=isoLocal(b);
+ date.min=isoLocal(a);
+ const todayIso=isoLocal(new Date());
+ date.max=isoLocal(b)>todayIso?todayIso:isoLocal(b);
  const now=new Date(); now.setHours(12,0,0,0); const pick=now<a?a:(now>b?b:now);
  if(!date.value||date.value<date.min||date.value>date.max) date.value=isoLocal(pick);
  document.getElementById('reportPeriod').innerHTML='דיווח עבור חודש <strong dir="ltr">'+pad(m)+'/'+year+'</strong>';
  renderLog();
+ updateManualTimeMax();
  loadEditorForDate();
+}
+function updateManualTimeMax(){
+ const todayIso=isoLocal(new Date());
+ time.max=(date.value===todayIso)?hm():'23:59';
 }
 function loadEditorForDate(){
  if(!date.value){editIn.value='';editOut.value='';return}
@@ -738,8 +745,22 @@ function loadEditorForDate(){
  editOut.value=r&&r[4]&&r[4]!=='—'?r[4]:'';
 }
 function hm(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())}
+function isFutureDateTime(dateStr,timeStr){
+ if(!dateStr||!timeStr)return false;
+ const chosen=new Date(dateStr+'T'+timeStr+':00');
+ const now=new Date();
+ return chosen.getTime()>now.getTime();
+}
+function validateNotFuture(dateStr,timeStr,targetMsg=msg){
+ if(isFutureDateTime(dateStr,timeStr)){
+   targetMsg.textContent='לא ניתן לשמור שעה עתידית.';
+   return false;
+ }
+ return true;
+}
 async function setReport(type,t){
  if(!date.value){msg.textContent='בחר תאריך.';return}
+ if(!validateNotFuture(date.value,t,msg))return
  const all=store();all[key()]=all[key()]||{};all[key()][date.value]=all[key()][date.value]||{};all[key()][date.value][type]=t;save(all);
  msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog(); renderCalendarMonth(+y.value,m);
  const cur=store()[key()]?.[date.value]||{}; await dbUpsertWorkEntry(date.value,cur.in||null,cur.out||null,'clock','work'); await loadSalary();
@@ -761,10 +782,12 @@ document.getElementById('inBtn').onclick=()=>setReport('in',hm());
 document.getElementById('outBtn').onclick=()=>setReport('out',hm());
 document.getElementById('manualInBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('in',time.value)};
 document.getElementById('manualOutBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('out',time.value)};
-date.addEventListener('change',loadEditorForDate);
+date.addEventListener('change',()=>{updateManualTimeMax();loadEditorForDate()});
 document.getElementById('saveEditBtn').onclick=async()=>{
  if(!date.value){msg.textContent='בחר תאריך לעריכה.';return}
  if(!editIn.value && !editOut.value){msg.textContent='הזן לפחות שעת כניסה או יציאה.';return}
+ if(editIn.value && !validateNotFuture(date.value,editIn.value,msg))return;
+ if(editOut.value && !validateNotFuture(date.value,editOut.value,msg))return
  const all=edits(); all[date.value]={in:editIn.value||'',out:editOut.value||''}; saveEdits(all);
  await dbUpsertWorkEntry(date.value,editIn.value||null,editOut.value||null,'manual','work');
  msg.textContent='התיקון הידני נשמר ל-'+date.value.split('-').reverse().join('/');
