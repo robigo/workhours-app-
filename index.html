@@ -124,7 +124,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v29</div>
+<div class="foot">WorkTime • גרסת מובייל • v30</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -524,13 +524,19 @@ async function loadSalary(){
  salaryPaidExtraHours.value=state.extraHours??0;
  const auto=calculatePeriodPayHours(year,m);
  const missing=auto.details.filter(x=>x.status!=='נכלל');
+ const officialClosed=official && Array.isArray(official.sum) && official.sum.length>=4;
  salaryDaysDetail.innerHTML=auto.details.map(x=>'<div class="row"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span>'+(x.status==='נכלל'?('רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)):('<b>לא נכלל:</b> '+x.status))+'</span></div>').join('');
 
- if(auto.daysCount>0){
+ if(officialClosed){
+   salaryRegular.value=Number(official.sum[1]||0).toFixed(2);
+   salary125.value=Number(official.sum[2]||0).toFixed(2);
+   salary150.value=Number(official.sum[3]||0).toFixed(2);
+   salaryNote.textContent='מחזור סגור: חלוקת השעות נטענה מסיכום הדוח הרשמי. פירוט הכניסה/יציאה מוצג לבקרה; תיקוני משתמש ממשיכים לגבור בתצוגת הנוכחות.';
+ } else if(auto.daysCount>0){
    salaryRegular.value=auto.regular.toFixed(2);
    salary125.value=auto.h125.toFixed(2);
    salary150.value=auto.h150.toFixed(2);
-   salaryNote.textContent='חושב אוטומטית מ-'+auto.daysCount+' ימים עם זוג כניסה+יציאה. '+missing.length+' ימים בתקופה אינם נכללים כרגע כי חסר בהם דיווח מלא. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ רק השעות שמעבר למכסת היום הן נוספות: 2 הראשונות 125% ומהשלישית 150%.';
+   salaryNote.textContent='מחזור פתוח: חושב אוטומטית מ-'+auto.daysCount+' ימים עם זוג כניסה+יציאה. '+missing.length+' ימים בתקופה אינם נכללים כרגע כי חסר בהם דיווח מלא. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ רק השעות שמעבר למכסת היום הן נוספות: 2 הראשונות 125% ומהשלישית 150%.';
  } else if(state.reg!=null && (Number(state.reg)||Number(state.h125)||Number(state.h150))){
    salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
    salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
@@ -565,7 +571,7 @@ function calcSalary(saveState=true){
    '<div class="calcrow"><span>גמל/פנסיה משוער</span><b>₪'+estPension.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>יחס נטו בתלוש הבסיס</span><b>'+((AUG_NET/AUG_GROSS)*100).toFixed(1)+'%</b></div>'+
    '<div class="calcrow"><span>אוגוסט בפועל</span><b>₪10,513.93 נטו</b></div>'+
-   '<div class="calcrow"><span>כיול ספטמבר</span><b>35.50 ש׳ 125% | 17.90 ש׳ 150%</b></div>'+
+   '<div class="calcrow"><span>סיכום רשמי ספטמבר</span><b>35.50 ש׳ 125% | 17.90 ש׳ 150%</b></div>'+
    '<div class="calcrow"><span>ספטמבר בפועל</span><b>₪11,926.21 ברוטו | ₪10,514.33 נטו</b></div>';
  if(saveState){
    localStorage.setItem('worktimeHourlyRate',hourlyRate.value||'');
