@@ -122,7 +122,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v25</div>
+<div class="foot">WorkTime • גרסת מובייל • v26</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -442,9 +442,38 @@ function calculatePeriodPayHours(year,month){
  }
  return {regular,h125,h150,daysCount,details};
 }
+async function dbLoadPeriodEntries(year,month){
+ if(!currentUser)return;
+ const [a,b]=bounds(year,month);
+ const from=isoLocal(a), to=isoLocal(b);
+ const {data,error}=await sb.from('work_entries')
+   .select('work_date,entry_time,exit_time,source,status')
+   .eq('user_id',currentUser.id)
+   .gte('work_date',from)
+   .lte('work_date',to)
+   .order('work_date');
+ if(error){
+   console.error('period salary sync',error);
+   syncState.textContent='שגיאת סנכרון';
+   return;
+ }
+ for(const r of (data||[])){
+   dbEntriesByDate[r.work_date]={
+     in:(r.entry_time||'').slice(0,5),
+     out:(r.exit_time||'').slice(0,5),
+     source:r.source,
+     status:r.status
+   };
+ }
+ syncState.textContent='מסונכרן';
+}
 function salaryStateKey(){return 'worktimeSalary-'+key()}
-function loadSalary(){
+async function loadSalary(){
  const year=+y.value, k=key(), official=known[k];
+ if(currentUser){
+   salaryNote.textContent='טוען נתוני נוכחות מ-Supabase…';
+   await dbLoadPeriodEntries(year,m);
+ }
  salaryPeriod.innerHTML='תקופת שכר: <strong dir="ltr">'+range(year,m)+'</strong>';
  let state={}; try{state=JSON.parse(localStorage.getItem(salaryStateKey())||'{}')}catch{}
  baseSalary.value=state.baseSalary??8500;
@@ -532,18 +561,18 @@ function loadEditorForDate(){
  editOut.value=r&&r[4]&&r[4]!=='—'?r[4]:'';
 }
 function hm(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())}
-function setReport(type,t){
+async function setReport(type,t){
  if(!date.value){msg.textContent='בחר תאריך.';return}
  const all=store();all[key()]=all[key()]||{};all[key()][date.value]=all[key()][date.value]||{};all[key()][date.value][type]=t;save(all);
  msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog(); renderCalendarMonth(+y.value,m);
- const cur=store()[key()]?.[date.value]||{}; dbUpsertWorkEntry(date.value,cur.in||null,cur.out||null,'clock','work'); loadSalary();
+ const cur=store()[key()]?.[date.value]||{}; await dbUpsertWorkEntry(date.value,cur.in||null,cur.out||null,'clock','work'); await loadSalary();
 }
 function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
  log.innerHTML=rows.length?rows.map(([d,v])=>`<div class="row"><b dir="ltr">${d.split('-').reverse().join('/')}</b><span>כניסה: <b>${v.in||'—'}</b></span><span>יציאה: <b>${v.out||'—'}</b></span><button data-del="${d}">מחק</button></div>`).join(''):'<div class="hint" style="text-align:center;padding:10px">עדיין אין דיווחים בתקופה הזו.</div>';
 }
 attendanceTabBtn.addEventListener('click',()=>{attendanceTabBtn.classList.add('active');salaryTabBtn.classList.remove('active');attendancePane.classList.add('active');salaryPane.classList.remove('active')});
-salaryTabBtn.addEventListener('click',async()=>{salaryTabBtn.classList.add('active');attendanceTabBtn.classList.remove('active');salaryPane.classList.add('active');attendancePane.classList.remove('active');if(currentUser)await dbLoadWorkEntries();loadSalary()});
+salaryTabBtn.addEventListener('click',async()=>{salaryTabBtn.classList.add('active');attendanceTabBtn.classList.remove('active');salaryPane.classList.add('active');attendancePane.classList.remove('active');await loadSalary()});
 document.getElementById('salaryCalcBtn').addEventListener('click',()=>calcSalary(true));
 [baseSalary,standardHours,hourlyRate,salaryExtras,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
 months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
@@ -554,13 +583,13 @@ document.getElementById('outBtn').onclick=()=>setReport('out',hm());
 document.getElementById('manualInBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('in',time.value)};
 document.getElementById('manualOutBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('out',time.value)};
 date.addEventListener('change',loadEditorForDate);
-document.getElementById('saveEditBtn').onclick=()=>{
+document.getElementById('saveEditBtn').onclick=async()=>{
  if(!date.value){msg.textContent='בחר תאריך לעריכה.';return}
  if(!editIn.value && !editOut.value){msg.textContent='הזן לפחות שעת כניסה או יציאה.';return}
  const all=edits(); all[date.value]={in:editIn.value||'',out:editOut.value||''}; saveEdits(all);
- dbUpsertWorkEntry(date.value,editIn.value||null,editOut.value||null,'manual','work');
+ await dbUpsertWorkEntry(date.value,editIn.value||null,editOut.value||null,'manual','work');
  msg.textContent='התיקון הידני נשמר ל-'+date.value.split('-').reverse().join('/');
- renderCalendarMonth(+y.value,m); loadSalary();
+ renderCalendarMonth(+y.value,m); await loadSalary();
 };
 document.getElementById('clearEditBtn').onclick=()=>{
  if(!date.value)return;
