@@ -121,7 +121,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v16</div>
+<div class="foot">WorkTime • גרסת מובייל • v17</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -421,14 +421,17 @@ function loadSalary(){
  salaryExtras.value=state.extras??0;
  salaryPaidExtraHours.value=state.extraHours??0;
  const auto=calculatePeriodPayHours(year,m);
- if(state.reg!=null){
-   salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
-   salaryNote.textContent='החלוקה נשמרה ידנית. חישוב אוטומטי לפי דיווחי התקופה: רגיל '+auto.regular.toFixed(2)+' | 125% '+auto.h125.toFixed(2)+' | 150% '+auto.h150.toFixed(2)+'.';
- } else {
+ if(auto.daysCount>0){
    salaryRegular.value=auto.regular.toFixed(2);
    salary125.value=auto.h125.toFixed(2);
    salary150.value=auto.h150.toFixed(2);
    salaryNote.textContent='חושב אוטומטית מ-'+auto.daysCount+' ימי דיווח בתקופה '+range(year,m)+'. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ שעתיים ראשונות = 125% ומהשעה השלישית = 150%.';
+ } else if(state.reg!=null && (Number(state.reg)||Number(state.h125)||Number(state.h150))){
+   salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
+   salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
+ } else {
+   salaryRegular.value=0; salary125.value=0; salary150.value=0;
+   salaryNote.textContent='עדיין אין דיווחי כניסה ויציאה מלאים בתקופת השכר '+range(year,m)+'.';
  }
  calcSalary(false);
 }
@@ -495,7 +498,7 @@ function setReport(type,t){
  if(!date.value){msg.textContent='בחר תאריך.';return}
  const all=store();all[key()]=all[key()]||{};all[key()][date.value]=all[key()][date.value]||{};all[key()][date.value][type]=t;save(all);
  msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog(); renderCalendarMonth(+y.value,m);
- const cur=store()[key()]?.[date.value]||{}; dbUpsertWorkEntry(date.value,cur.in||null,cur.out||null,'clock','work');
+ const cur=store()[key()]?.[date.value]||{}; dbUpsertWorkEntry(date.value,cur.in||null,cur.out||null,'clock','work'); loadSalary();
 }
 function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
@@ -519,16 +522,16 @@ document.getElementById('saveEditBtn').onclick=()=>{
  const all=edits(); all[date.value]={in:editIn.value||'',out:editOut.value||''}; saveEdits(all);
  dbUpsertWorkEntry(date.value,editIn.value||null,editOut.value||null,'manual','work');
  msg.textContent='התיקון הידני נשמר ל-'+date.value.split('-').reverse().join('/');
- renderCalendarMonth(+y.value,m);
+ renderCalendarMonth(+y.value,m); loadSalary();
 };
 document.getElementById('clearEditBtn').onclick=()=>{
  if(!date.value)return;
  const all=edits(); delete all[date.value]; saveEdits(all);
  dbDeleteWorkEntry(date.value);
  msg.textContent='התיקון הידני בוטל.';
- loadEditorForDate(); renderCalendarMonth(+y.value,m);
+ loadEditorForDate(); renderCalendarMonth(+y.value,m); loadSalary();
 };
-log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);dbDeleteWorkEntry(b.dataset.del);renderLog();renderCalendarMonth(+y.value,m)});
+log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);dbDeleteWorkEntry(b.dataset.del);renderLog();renderCalendarMonth(+y.value,m);loadSalary()});
 authToggle.addEventListener('click',()=>authBox.classList.toggle('show'));
 document.getElementById('signInBtn').addEventListener('click',async()=>{
  authMsg.textContent='מתחבר…';
