@@ -92,7 +92,7 @@
 <section class="salarybox">
 <h3>שכר משוער — מחזור 23 → 22</h3>
 <div id="salaryPeriod" class="period" style="background:#f1f5f9;color:#0f172a"></div>
-<div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: 08:00–17:00 רגיל; כל זמן עבודה אחרי 17:00 = 125%. יום ו׳: שעות עד מכסת היום רגילות; מתוך השעות הנוספות 2 הראשונות = 125%, ומהשעה הנוספת השלישית = 150%. החישוב מתבצע רק בתוך מחזור השכר 23→22.</div>
+<div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: 08:00–17:00 רגיל; כל זמן עבודה אחרי 17:00 = 125%. יום ו׳: שעות עד מכסת היום רגילות; מתוך השעות הנוספות 2 הראשונות = 125%, ומהשעה הנוספת השלישית = 150%. בחודש שנבחר, תקופת השכר היא מ־23 בחודש הקודם עד 22 בחודש הנבחר.</div>
 <div class="salarygrid">
 <label>שכר בסיס חודשי (₪)<input id="baseSalary" type="number" step="0.01" min="0" value="8500"></label>
 <label>תעריף שעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" value="46.70"></label>
@@ -124,7 +124,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v27</div>
+<div class="foot">WorkTime • גרסת מובייל • v28</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -209,6 +209,15 @@ const known={
 function pad(n){return String(n).padStart(2,'0')}
 function range(year,month){const nm=month===12?1:month+1,ny=month===12?year+1:year;return `23/${pad(month)}/${year} → 22/${pad(nm)}/${ny}`}
 function bounds(year,month){const a=new Date(year,month-1,23,12),b=new Date(month===12?year+1:year,month===12?0:month,22,12);return[a,b]}
+function salaryBounds(year,month){
+ const prevMonth=month===1?12:month-1;
+ const prevYear=month===1?year-1:year;
+ return [new Date(prevYear,prevMonth-1,23,12),new Date(year,month-1,22,12)];
+}
+function salaryRange(year,month){
+ const [a,b]=salaryBounds(year,month);
+ return `23/${pad(a.getMonth()+1)}/${a.getFullYear()} → 22/${pad(b.getMonth()+1)}/${b.getFullYear()}`;
+}
 function isoLocal(d){const yy=d.getFullYear(),mm=pad(d.getMonth()+1),dd=pad(d.getDate());return `${yy}-${mm}-${dd}`}
 function key(){return y.value+'-'+m}
 function store(){try{return JSON.parse(localStorage.getItem('worktimeReports')||'{}')}catch{return {}}}
@@ -429,7 +438,7 @@ function splitPayHoursForDay(d,entry){
  return {regular:regularMinutes/60,h125:overtime125Minutes/60,h150:0,total};
 }
 function calculatePeriodPayHours(year,month){
- const [a,b]=bounds(year,month);
+ const [a,b]=salaryBounds(year,month);
  let regular=0,h125=0,h150=0,daysCount=0;
  const details=[];
  for(let d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
@@ -472,7 +481,7 @@ async function syncLocalAttendanceToCloud(){
 }
 async function dbLoadPeriodEntries(year,month){
  if(!currentUser)return;
- const [a,b]=bounds(year,month);
+ const [a,b]=salaryBounds(year,month);
  const from=isoLocal(a), to=isoLocal(b);
  const {data,error}=await sb.from('work_entries')
    .select('work_date,entry_time,exit_time,source,status')
@@ -496,13 +505,16 @@ async function dbLoadPeriodEntries(year,month){
  syncState.textContent='מסונכרן';
 }
 function salaryStateKey(){return 'worktimeSalary-'+key()}
-async function loadSalary(){
- const year=+y.value, k=key(), official=known[k];
+async async function loadSalary(){
+ const year=+y.value;
+ const prevMonth=m===1?12:m-1;
+ const prevYear=m===1?year-1:year;
+ const official=known[prevYear+'-'+prevMonth];
  if(currentUser){
    salaryNote.textContent='טוען נתוני נוכחות מ-Supabase…';
    await dbLoadPeriodEntries(year,m);
  }
- salaryPeriod.innerHTML='תקופת שכר: <strong dir="ltr">'+range(year,m)+'</strong>';
+ salaryPeriod.innerHTML='תקופת שכר: <strong dir="ltr">'+salaryRange(year,m)+'</strong>';
  let state={}; try{state=JSON.parse(localStorage.getItem(salaryStateKey())||'{}')}catch{}
  baseSalary.value=state.baseSalary??8500;
  standardHours.value=state.standardHours??182;
@@ -524,7 +536,7 @@ async function loadSalary(){
    salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
  } else {
    salaryRegular.value=0; salary125.value=0; salary150.value=0;
-   salaryNote.textContent='עדיין לא נמצאו זוגות כניסה+יציאה מלאים בתקופת השכר '+range(year,m)+'. לאחר סנכרון או השלמת יציאה החישוב יתעדכן אוטומטית.';
+   salaryNote.textContent='עדיין לא נמצאו זוגות כניסה+יציאה מלאים בתקופת השכר '+salaryRange(year,m)+'. לאחר סנכרון או השלמת יציאה החישוב יתעדכן אוטומטית.';
  }
  calcSalary(false);
 }
@@ -538,7 +550,7 @@ function calcSalary(saveState=true){
  const estMandatory=gross*mandatoryRatio, estPension=gross*pensionRatio, net=gross-estMandatory-estPension;
  salaryGross.textContent='₪'+gross.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
  salaryBreakdown.innerHTML=
-   '<div class="calcrow"><span>תקופת שכר</span><b dir="ltr">'+range(+y.value,m)+'</b></div>'+
+   '<div class="calcrow"><span>תקופת שכר</span><b dir="ltr">'+salaryRange(+y.value,m)+'</b></div>'+
    '<div class="calcrow"><span>שכר בסיס</span><b>₪'+basePay.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>תקן / שעות רגילות מחושבות</span><b>'+std.toFixed(2)+' / '+reg.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>כלל א׳–ה׳</span><b>אחרי 17:00 → 125%</b></div>'+
