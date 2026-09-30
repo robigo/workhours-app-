@@ -98,9 +98,9 @@
 <label>תעריף שעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" value="46.70"></label>
 <label>תקן שעות חודשי<input id="standardHours" type="number" step="0.01" min="0" value="182"></label>
 <label>תוספות קבועות / אש״ל (₪)<input id="salaryExtras" type="number" step="0.01" value="100"></label>
-<label>שעות רגילות<input id="salaryRegular" type="number" step="0.01" min="0"></label>
-<label>שעות 125%<input id="salary125" type="number" step="0.01" min="0"></label>
-<label>שעות 150%<input id="salary150" type="number" step="0.01" min="0"></label>
+<label><span id="regularHoursLabel">שעות רגילות</span><input id="salaryRegular" type="number" step="0.01" min="0"></label>
+<label><span id="hours125Label">שעות 125%</span><input id="salary125" type="number" step="0.01" min="0"></label>
+<label><span id="hours150Label">שעות 150%</span><input id="salary150" type="number" step="0.01" min="0"></label>
 <label>שעות בתשלום נוספות<input id="salaryPaidExtraHours" type="number" step="0.01" min="0" value="0"></label>
 </div>
 <div class="actions">
@@ -124,7 +124,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v30</div>
+<div class="foot">WorkTime • גרסת מובייל • v31</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -525,7 +525,13 @@ async function loadSalary(){
  const auto=calculatePeriodPayHours(year,m);
  const missing=auto.details.filter(x=>x.status!=='נכלל');
  const officialClosed=official && Array.isArray(official.sum) && official.sum.length>=4;
- salaryDaysDetail.innerHTML=auto.details.map(x=>'<div class="row"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span>'+(x.status==='נכלל'?('רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)):('<b>לא נכלל:</b> '+x.status))+'</span></div>').join('');
+ const periodStatusText=officialClosed?'מחזור סגור — נתוני דוח רשמי':'מחזור פתוח — נצבר עד כה';
+ document.getElementById('regularHoursLabel').textContent=officialClosed?'שעות רגילות':'שעות רגילות — נצבר עד כה';
+ document.getElementById('hours125Label').textContent=officialClosed?'שעות 125%':'שעות 125% — נצבר עד כה';
+ document.getElementById('hours150Label').textContent=officialClosed?'שעות 150%':'שעות 150% — נצבר עד כה';
+ const pendingCount=missing.length;
+
+ salaryDaysDetail.innerHTML='<div class="period" style="margin-bottom:10px;background:#eef4ff;color:#0f172a"><strong>'+periodStatusText+'</strong>'+(officialClosed?'':' • '+auto.daysCount+' ימים חושבו • '+pendingCount+' ימים ממתינים')+'</div>'+auto.details.map(x=>'<div class="row"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span>'+(x.status==='נכלל'?('רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)):('<b>לא נכלל:</b> '+x.status))+'</span></div>').join('');
 
  if(officialClosed){
    salaryRegular.value=Number(official.sum[1]||0).toFixed(2);
