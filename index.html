@@ -135,7 +135,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v39</div>
+<div class="foot">WorkTime • גרסת מובייל • v40</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -400,7 +400,9 @@ function renderCalendarMonth(year,month){
    ['דיווחים חיים',visibleRows.filter(r=>r.source==='דיווח משתמש').length],
    ['ימים מוצגים',visibleRows.length]
  ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
- days.innerHTML=isFutureMonth?'<div class="empty">החודש עדיין לא התחיל.</div>':'<div class="daily">'+visibleRows.map(r=>`<article class="day"><div class="daytop"><div><b dir="ltr">${r.date}</b><div class="hint">יום ${r.day}${r.source?' • '+r.source:''}</div></div><span class="badge ${r.status==='עבודה'||r.status==='דווח'||r.status==='נערך ידנית'?'ok':'off'}">${r.status}</span></div><div class="hours"><div class="chip">כניסה<b>${r.in}</b></div><div class="chip">יציאה<b>${r.out}</b></div><div class="chip">לתשלום<b>${r.paid}</b></div><div class="chip">סטטוס<b>${r.status}</b></div></div></article>`).join('')+'</div>';
+ days.innerHTML=isFutureMonth
+   ? '<div class="empty">החודש עדיין לא התחיל.</div>'
+   : '<div class="daily">'+visibleRows.map(r=>`<article class="day"><div class="daytop"><div><b dir="ltr">${r.date}</b><div class="hint">יום ${r.day}${r.source?' • '+r.source:''}</div></div><span class="badge ${r.status==='עבודה'||r.status==='דווח'||r.status==='נערך ידנית'?'ok':'off'}">${r.status}</span></div><div class="hours"><div class="chip">כניסה<b>${r.in}</b></div><div class="chip">יציאה<b>${r.out}</b></div><div class="chip">לתשלום<b>${r.paid}</b></div><div class="chip">סטטוס<b>${r.status}</b></div></div></article>`).join('')+'</div>';
  period.innerHTML='תצוגת חודש: <strong dir="ltr">'+pad(month)+'/'+year+'</strong>';
 }
 function periodLiveHours(year,month){
