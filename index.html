@@ -24,11 +24,37 @@
 @media(max-width:650px){.salary-day{grid-template-columns:1fr 1fr}.salary-day .ot-summary{grid-column:1/-1}}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;position:sticky;top:6px;z-index:50;padding:6px;background:rgba(244,247,251,.94);backdrop-filter:blur(8px);border-radius:15px}.tabbtn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;font:inherit;font-weight:900;color:var(--muted)}.tabbtn.active{background:#0f172a;color:#fff}.tabpane{display:none}.tabpane.active{display:block}.salarybox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);margin-top:12px}.salarygrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}.salarygrid label{font-size:12px;color:var(--muted);display:grid;gap:5px}.salarygrid input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}.salaryresult{margin-top:12px;background:#0f172a;color:#fff;border-radius:16px;padding:14px}.salaryresult .big{font-size:28px;font-weight:900;margin-top:5px}.calcrows{display:grid;gap:7px;margin-top:10px}.calcrow{display:flex;justify-content:space-between;gap:10px;font-size:13px}.section{margin-top:12px}.section h3{margin:0 0 9px}.empty{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;color:var(--muted);box-shadow:var(--shadow)}.daily{display:grid;gap:8px}.day{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px}.daytop{display:flex;justify-content:space-between;gap:8px}.badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800}.ok{background:#ecfdf5;color:#047857}.off{background:#f3f4f6;color:#6b7280}.hours{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.chip{background:#f8fafc;border-radius:9px;padding:8px;font-size:11px}.chip b{display:block;margin-top:3px}.foot{text-align:center;color:var(--muted);font-size:11px;margin:18px 0}
 @media(max-width:680px){.app{padding:8px}.months{grid-template-columns:repeat(3,1fr)}.month{min-height:54px}.grid{grid-template-columns:repeat(2,1fr)}.controls,.actions{grid-template-columns:1fr}.manual{grid-column:auto}.row{grid-template-columns:1fr 1fr}.row button{grid-column:1/-1;width:100%}.hours{grid-template-columns:1fr 1fr}.hero{border-radius:18px}}
+.settings-toggle{border:0;background:#eef2ff;color:#3730a3;border-radius:12px;padding:9px 11px;font:inherit;font-weight:900}
+.advanced-panel{display:none}.advanced-panel.show{display:block}
+.compact-toggle{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;font:inherit;font-weight:900;color:#334155;margin-top:10px}
+.today-card{display:none}
+@media(max-width:680px){
+ body{background:#f5f7fb}
+ .app{padding:8px 10px 22px}
+ .top{position:sticky;top:0;z-index:70;background:rgba(245,247,251,.94);backdrop-filter:blur(12px);padding:7px 0;margin:0 0 8px}
+ .logo{width:40px;height:40px;border-radius:12px}.top h1{font-size:20px}.top p{display:none}
+ .syncpill{padding:5px 7px}.authbtn{padding:7px 9px;font-size:12px}
+ .hero{padding:13px;border-radius:18px}.hero h2{font-size:19px}.hero>p{display:none}
+ .picker{margin-top:8px;padding:9px}.months{display:flex;overflow-x:auto;gap:7px;padding-bottom:3px;scrollbar-width:none}.months::-webkit-scrollbar{display:none}
+ .month{min-width:68px;min-height:48px;flex:0 0 auto}.period{margin-top:7px;padding:8px 10px}
+ .tabs{top:54px;margin:8px 0;padding:4px}.tabbtn{padding:10px}
+ .grid{grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.card{padding:9px;border-radius:13px;box-shadow:none}.value{font-size:17px}.label{font-size:10px}
+ .report,.salarybox{margin-top:8px;padding:12px;border-radius:16px;box-shadow:none}
+ .report .controls{grid-template-columns:1fr 1fr}.report .actions{grid-template-columns:1fr 1fr}.report .actions .manual{display:none}
+ .editbox,#log{display:none}
+ .section{margin-top:10px}.section h3{font-size:16px}
+ .day{padding:10px;border-radius:13px}.hours{grid-template-columns:repeat(4,1fr);gap:5px}.chip{padding:7px 5px;text-align:center}
+ .salarygrid{grid-template-columns:repeat(3,1fr);gap:7px}.salarygrid label{font-size:10px}.salarygrid input{padding:9px;text-align:center}
+ #baseSalary,#hourlyRate,#standardHours,#salaryExtras,#salaryPaidExtraHours{background:#f8fafc}
+ .salaryresult{padding:12px}.salaryresult .big{font-size:25px}
+ #salaryDaysDetail{margin-top:8px}
+ .salary-day{padding:9px}
+}
 </style>
 </head>
 <body>
 <main class="app">
-<div class="top"><div class="logo">WT</div><div><h1>WorkTime</h1><p>נוכחות ושעות נוספות</p></div><div class="authbar"><span id="syncState" class="syncpill">מקומי</span><button id="authToggle" type="button" class="authbtn" onclick="document.getElementById('authBox').classList.toggle('show');return false;">התחברות</button></div></div>
+<div class="top"><div class="logo">WT</div><div><h1>WorkTime</h1><p>נוכחות ושעות נוספות</p></div><div class="authbar"><span id="syncState" class="syncpill">מקומי</span><button id="settingsToggle" type="button" class="settings-toggle">⚙️</button><button id="authToggle" type="button" class="authbtn" onclick="document.getElementById('authBox').classList.toggle('show');return false;">התחברות</button></div></div>
 <section id="authBox" class="authbox">
 <h3 style="margin-top:0">חיבור לחשבון WorkTime</h3>
 <div class="authgrid">
@@ -78,7 +104,8 @@
 <button id="manualInBtn" class="btn manual">שמור כניסה ידנית</button><button id="manualOutBtn" class="btn manual">שמור יציאה ידנית</button>
 </div>
 <div id="msg" class="msg">בחר תאריך ואז דווח כניסה או יציאה.</div>
-<div class="editbox">
+<button id="attendanceAdvancedToggle" type="button" class="compact-toggle">עריכה ידנית והגדרות דיווח ▾</button>
+<div id="attendanceAdvanced" class="advanced-panel"><div class="editbox">
 <h4>עריכת שעות לפי הדוח</h4>
 <div class="hint">בחר תאריך למעלה, הזן כניסה ויציאה כפי שמופיעות בדוח ושמור.</div>
 <div class="editgrid">
@@ -89,8 +116,7 @@
 <button id="saveEditBtn" class="btn saveedit">שמור תיקון ליום</button>
 <button id="clearEditBtn" class="btn clearedit">בטל תיקון ידני</button>
 </div>
-</div>
-<div id="log" class="log"></div>
+</div><div id="log" class="log"></div></div>
 </section>
 
 <section class="section">
@@ -103,24 +129,29 @@
 <section class="salarybox">
 <h3>שכר משוער — מחזור 23 → 22</h3>
 <div id="salaryPeriod" class="period" style="background:#f1f5f9;color:#0f172a"></div>
+<button id="salaryAdvancedToggle" type="button" class="compact-toggle">הגדרות שכר וכללי חישוב ▾</button>
+<div id="salaryAdvanced" class="advanced-panel">
 <div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: 08:00–17:00 רגיל; כל זמן עבודה אחרי 17:00 = 125%. יום ו׳: שעות עד מכסת היום רגילות; מתוך השעות הנוספות 2 הראשונות = 125%, ומהשעה הנוספת השלישית = 150%. בחודש שנבחר, תקופת השכר היא מ־23 בחודש הקודם עד 22 בחודש הנבחר.</div>
 <div class="salarygrid">
 <label>שכר בסיס חודשי (₪)<input id="baseSalary" type="number" step="0.01" min="0" value="8500"></label>
 <label>תעריף שעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" value="46.70"></label>
 <label>תקן שעות חודשי<input id="standardHours" type="number" step="0.01" min="0" value="182"></label>
 <label>תוספות קבועות / אש״ל (₪)<input id="salaryExtras" type="number" step="0.01" value="100"></label>
+</div>
+<div class="salarygrid">
 <label><span id="regularHoursLabel">שעות רגילות</span><input id="salaryRegular" type="number" step="0.01" min="0"></label>
 <label><span id="hours125Label">שעות 125%</span><input id="salary125" type="number" step="0.01" min="0"></label>
 <label><span id="hours150Label">שעות 150%</span><input id="salary150" type="number" step="0.01" min="0"></label>
 <label>שעות בתשלום נוספות<input id="salaryPaidExtraHours" type="number" step="0.01" min="0" value="0"></label>
-</div>
+</div></div>
 <div class="actions">
 <button id="salaryCalcBtn" class="btn manual">חשב שכר משוער</button>
 <button id="cloudSyncBtn" class="btn manual">סנכרן נתוני המכשיר לענן</button>
 </div>
 <div id="cloudSyncMsg" class="msg"></div>
 <div id="salaryNote" class="msg"></div>
-<div id="salaryDaysDetail" class="log"></div>
+<button id="salaryDetailsToggle" type="button" class="compact-toggle">הצג פירוט ימים ▾</button>
+<div id="salaryDetailsWrap" class="advanced-panel"><div id="salaryDaysDetail" class="log"></div></div>
 <div id="salaryResult" class="salaryresult">
 <div class="label" style="color:#cbd5e1">ברוטו משוער</div>
 <div id="salaryGross" class="big">₪0.00</div>
@@ -135,7 +166,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v42</div>
+<div class="foot">WorkTime • גרסת מובייל • v43</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -688,6 +719,19 @@ document.getElementById('clearEditBtn').onclick=()=>{
  loadEditorForDate(); renderCalendarMonth(+y.value,m); loadSalary();
 };
 log.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const all=store();if(all[key()])delete all[key()][b.dataset.del];save(all);dbDeleteWorkEntry(b.dataset.del);renderLog();renderCalendarMonth(+y.value,m);loadSalary()});
+
+const togglePanel=(btnId,panelId,openText,closedText)=>{
+ const btn=document.getElementById(btnId),panel=document.getElementById(panelId);
+ if(!btn||!panel)return;
+ btn.addEventListener('click',()=>{
+   const open=panel.classList.toggle('show');
+   if(openText&&closedText)btn.textContent=open?openText:closedText;
+ });
+};
+togglePanel('attendanceAdvancedToggle','attendanceAdvanced','סגור עריכה ידנית ▴','עריכה ידנית והגדרות דיווח ▾');
+togglePanel('salaryAdvancedToggle','salaryAdvanced','סגור הגדרות שכר ▴','הגדרות שכר וכללי חישוב ▾');
+togglePanel('salaryDetailsToggle','salaryDetailsWrap','הסתר פירוט ימים ▴','הצג פירוט ימים ▾');
+document.getElementById('settingsToggle')?.addEventListener('click',()=>authBox.classList.toggle('show'));
 // authToggle handled inline as a browser-safe fallback.
 document.getElementById('signInBtn').addEventListener('click',async()=>{
  authMsg.textContent='מתחבר…';
