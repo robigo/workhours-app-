@@ -134,7 +134,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v36</div>
+<div class="foot">WorkTime • גרסת מובייל • v37</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -385,14 +385,20 @@ function renderCalendarMonth(year,month){
      rows.push({date:dd,day:dayName(d),status:d.getDay()===6?'מנוחה':'לא מופיע בדוח',in:'—',out:'—',paid:'—',source:''});
    }
  }
- const paidTotal=rows.reduce((s,r)=>s+(parseFloat(r.paid)||0),0);
+ const today=new Date(); today.setHours(23,59,59,999);
+ const isCurrentOrFutureMonth=(year>today.getFullYear())||(year===today.getFullYear()&&month>=today.getMonth()+1);
+ const visibleRows=isCurrentOrFutureMonth?rows.filter(r=>{
+   const [dd,mm,yy]=r.date.split('/').map(Number);
+   return new Date(yy,mm-1,dd,12)<=today;
+ }):rows;
+ const paidTotal=visibleRows.reduce((s,r)=>s+(parseFloat(r.paid)||0),0);
  summary.innerHTML=[
    ['סה״כ בתצוגת החודש',paidTotal.toFixed(2)],
-   ['ימים עם נתון',rows.filter(r=>r.in!=='—'||r.status==='חופשה').length],
-   ['דיווחים חיים',rows.filter(r=>r.source==='דיווח משתמש').length],
-   ['ימים בחודש',rows.length]
+   ['ימים עם נתון',visibleRows.filter(r=>r.in!=='—'||r.status==='חופשה').length],
+   ['דיווחים חיים',visibleRows.filter(r=>r.source==='דיווח משתמש').length],
+   ['ימים מוצגים',visibleRows.length]
  ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
- days.innerHTML='<div class="daily">'+rows.map(r=>`<article class="day"><div class="daytop"><div><b dir="ltr">${r.date}</b><div class="hint">יום ${r.day}${r.source?' • '+r.source:''}</div></div><span class="badge ${r.status==='עבודה'||r.status==='דווח'||r.status==='נערך ידנית'?'ok':'off'}">${r.status}</span></div><div class="hours"><div class="chip">כניסה<b>${r.in}</b></div><div class="chip">יציאה<b>${r.out}</b></div><div class="chip">לתשלום<b>${r.paid}</b></div><div class="chip">סטטוס<b>${r.status}</b></div></div></article>`).join('')+'</div>';
+ days.innerHTML='<div class="daily">'+visibleRows.map(r=>`<article class="day"><div class="daytop"><div><b dir="ltr">${r.date}</b><div class="hint">יום ${r.day}${r.source?' • '+r.source:''}</div></div><span class="badge ${r.status==='עבודה'||r.status==='דווח'||r.status==='נערך ידנית'?'ok':'off'}">${r.status}</span></div><div class="hours"><div class="chip">כניסה<b>${r.in}</b></div><div class="chip">יציאה<b>${r.out}</b></div><div class="chip">לתשלום<b>${r.paid}</b></div><div class="chip">סטטוס<b>${r.status}</b></div></div></article>`).join('')+'</div>';
  period.innerHTML='תצוגת חודש: <strong dir="ltr">'+pad(month)+'/'+year+'</strong>';
 }
 function periodLiveHours(year,month){
