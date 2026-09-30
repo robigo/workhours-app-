@@ -124,7 +124,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v28</div>
+<div class="foot">WorkTime • גרסת מובייל • v29</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -505,7 +505,7 @@ async function dbLoadPeriodEntries(year,month){
  syncState.textContent='מסונכרן';
 }
 function salaryStateKey(){return 'worktimeSalary-'+key()}
-async async function loadSalary(){
+async function loadSalary(){
  const year=+y.value;
  const prevMonth=m===1?12:m-1;
  const prevYear=m===1?year-1:year;
