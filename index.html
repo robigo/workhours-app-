@@ -121,7 +121,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v18</div>
+<div class="foot">WorkTime • גרסת מובייל • v19</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -131,6 +131,7 @@ const SUPABASE_URL='https://cgtvhrgudjkqnsqyscem.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_ocpQP7OZIV4oXPT3m6QJIw_lG0Dzr5S';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let currentUser=null;
+let dbEntriesByDate={};
 const names=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const y=document.getElementById('year'), months=document.getElementById('months'), period=document.getElementById('period');
 const summary=document.getElementById('summary'), days=document.getElementById('days');
@@ -214,18 +215,22 @@ async function dbUpsertWorkEntry(workDate,inTime,outTime,source='manual',status=
  if(!currentUser)return;
  const payload={user_id:currentUser.id,work_date:workDate,entry_time:inTime||null,exit_time:outTime||null,source,status};
  const {error}=await sb.from('work_entries').upsert(payload,{onConflict:'user_id,work_date'});
- if(error){syncState.textContent='שגיאת סנכרון'; console.error(error)} else syncState.textContent='מסונכרן';
+ if(error){syncState.textContent='שגיאת סנכרון'; console.error(error)} else {dbEntriesByDate[workDate]={in:(inTime||'').slice(0,5),out:(outTime||'').slice(0,5),source,status};syncState.textContent='מסונכרן';}
 }
 async function dbDeleteWorkEntry(workDate){
  if(!currentUser)return;
  const {error}=await sb.from('work_entries').delete().eq('user_id',currentUser.id).eq('work_date',workDate);
- if(error){syncState.textContent='שגיאת סנכרון';console.error(error)} else syncState.textContent='מסונכרן';
+ if(error){syncState.textContent='שגיאת סנכרון';console.error(error)} else {delete dbEntriesByDate[workDate];syncState.textContent='מסונכרן';}
 }
 async function dbLoadWorkEntries(){
  if(!currentUser)return;
  syncState.textContent='מסנכרן…';
  const {data,error}=await sb.from('work_entries').select('work_date,entry_time,exit_time,source,status').eq('user_id',currentUser.id).order('work_date');
  if(error){syncState.textContent='שגיאת סנכרון';console.error(error);return}
+ dbEntriesByDate={};
+ for(const r of (data||[])){
+   dbEntriesByDate[r.work_date]={in:(r.entry_time||'').slice(0,5),out:(r.exit_time||'').slice(0,5),source:r.source,status:r.status};
+ }
  const reports=store(), corr=edits();
  for(const r of (data||[])){
    const d=new Date(r.work_date+'T12:00:00');
@@ -381,6 +386,8 @@ function periodLiveHours(year,month){
 }
 function getBestEntryForDate(d){
  const iso=isoLocal(d), dd=pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();
+ const dbv=dbEntriesByDate[iso];
+ if(dbv && dbv.in && dbv.out) return {in:dbv.in,out:dbv.out};
  const corrected=edits()[iso];
  if(corrected && corrected.in && corrected.out) return {in:corrected.in,out:corrected.out};
  const reports=store();
@@ -518,7 +525,7 @@ function renderLog(){
  log.innerHTML=rows.length?rows.map(([d,v])=>`<div class="row"><b dir="ltr">${d.split('-').reverse().join('/')}</b><span>כניסה: <b>${v.in||'—'}</b></span><span>יציאה: <b>${v.out||'—'}</b></span><button data-del="${d}">מחק</button></div>`).join(''):'<div class="hint" style="text-align:center;padding:10px">עדיין אין דיווחים בתקופה הזו.</div>';
 }
 attendanceTabBtn.addEventListener('click',()=>{attendanceTabBtn.classList.add('active');salaryTabBtn.classList.remove('active');attendancePane.classList.add('active');salaryPane.classList.remove('active')});
-salaryTabBtn.addEventListener('click',()=>{salaryTabBtn.classList.add('active');attendanceTabBtn.classList.remove('active');salaryPane.classList.add('active');attendancePane.classList.remove('active');loadSalary()});
+salaryTabBtn.addEventListener('click',async()=>{salaryTabBtn.classList.add('active');attendanceTabBtn.classList.remove('active');salaryPane.classList.add('active');attendancePane.classList.remove('active');if(currentUser)await dbLoadWorkEntries();loadSalary()});
 document.getElementById('salaryCalcBtn').addEventListener('click',()=>calcSalary(true));
 [baseSalary,standardHours,hourlyRate,salaryExtras,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
 months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
