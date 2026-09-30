@@ -94,8 +94,10 @@
 <div id="salaryPeriod" class="period" style="background:#f1f5f9;color:#0f172a"></div>
 <div class="hint" style="margin-top:8px">החישוב כאן נפרד מתצוגת החודש ומבוסס רק על תקופת השכר 23 בחודש עד 22 בחודש הבא.</div>
 <div class="salarygrid">
-<label>שכר לשעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" placeholder="לדוגמה 50"></label>
-<label>תוספות קבועות (₪)<input id="salaryExtras" type="number" step="0.01" value="0"></label>
+<label>שכר בסיס חודשי (₪)<input id="baseSalary" type="number" step="0.01" min="0" value="8500"></label>
+<label>תעריף שעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" value="46.70"></label>
+<label>תקן שעות חודשי<input id="standardHours" type="number" step="0.01" min="0" value="182"></label>
+<label>תוספות קבועות / אש״ל (₪)<input id="salaryExtras" type="number" step="0.01" value="100"></label>
 <label>שעות רגילות<input id="salaryRegular" type="number" step="0.01" min="0"></label>
 <label>שעות 125%<input id="salary125" type="number" step="0.01" min="0"></label>
 <label>שעות 150%<input id="salary150" type="number" step="0.01" min="0"></label>
@@ -110,10 +112,16 @@
 <div id="salaryGross" class="big">₪0.00</div>
 <div id="salaryBreakdown" class="calcrows"></div>
 </div>
+<div class="salaryresult" style="margin-top:9px;background:#fff;color:#0f172a;border:1px solid var(--line)">
+<div class="label">נטו משוער לפי יחס הניכויים בתלוש אוגוסט</div>
+<div id="salaryNet" class="big">₪0.00</div>
+<div id="netBreakdown" class="calcrows"></div>
+<div class="hint" style="margin-top:9px">האומדן משתמש בתלוש אוגוסט 2026 כבסיס. מסים וניכויים בפועל עשויים להשתנות מחודש לחודש.</div>
+</div>
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v14</div>
+<div class="foot">WorkTime • גרסת מובייל • v15</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -130,9 +138,11 @@ const date=document.getElementById('date'), time=document.getElementById('time')
 const editIn=document.getElementById('editIn'), editOut=document.getElementById('editOut');
 const attendancePane=document.getElementById('attendancePane'), salaryPane=document.getElementById('salaryPane');
 const attendanceTabBtn=document.getElementById('attendanceTabBtn'), salaryTabBtn=document.getElementById('salaryTabBtn');
+const baseSalary=document.getElementById('baseSalary'), standardHours=document.getElementById('standardHours');
 const hourlyRate=document.getElementById('hourlyRate'), salaryExtras=document.getElementById('salaryExtras');
 const salaryRegular=document.getElementById('salaryRegular'), salary125=document.getElementById('salary125'), salary150=document.getElementById('salary150'), salaryPaidExtraHours=document.getElementById('salaryPaidExtraHours');
 const salaryPeriod=document.getElementById('salaryPeriod'), salaryGross=document.getElementById('salaryGross'), salaryBreakdown=document.getElementById('salaryBreakdown'), salaryNote=document.getElementById('salaryNote');
+const salaryNet=document.getElementById('salaryNet'), netBreakdown=document.getElementById('netBreakdown');
 const authBox=document.getElementById('authBox'), authToggle=document.getElementById('authToggle'), authEmail=document.getElementById('authEmail'), authPassword=document.getElementById('authPassword'), authMsg=document.getElementById('authMsg'), signOutBtn=document.getElementById('signOutBtn'), syncState=document.getElementById('syncState');
 let m=9, manualType='in';
 const known={
@@ -368,7 +378,9 @@ function loadSalary(){
  const year=+y.value, k=key(), official=known[k];
  salaryPeriod.innerHTML='תקופת שכר: <strong dir="ltr">'+range(year,m)+'</strong>';
  let state={}; try{state=JSON.parse(localStorage.getItem(salaryStateKey())||'{}')}catch{}
- hourlyRate.value=state.rate||localStorage.getItem('worktimeHourlyRate')||'';
+ baseSalary.value=state.baseSalary??8500;
+ standardHours.value=state.standardHours??182;
+ hourlyRate.value=state.rate||localStorage.getItem('worktimeHourlyRate')||'46.70';
  salaryExtras.value=state.extras??0;
  salaryPaidExtraHours.value=state.extraHours??0;
  if(state.reg!=null){
@@ -384,20 +396,31 @@ function loadSalary(){
  calcSalary(false);
 }
 function calcSalary(saveState=true){
- const rate=parseFloat(hourlyRate.value)||0, reg=parseFloat(salaryRegular.value)||0, h125=parseFloat(salary125.value)||0, h150=parseFloat(salary150.value)||0;
+ const rate=parseFloat(hourlyRate.value)||46.70, reg=parseFloat(salaryRegular.value)||0, h125=parseFloat(salary125.value)||0, h150=parseFloat(salary150.value)||0;
+ const base=parseFloat(baseSalary.value)||8500, std=parseFloat(standardHours.value)||182;
  const extraH=parseFloat(salaryPaidExtraHours.value)||0, extras=parseFloat(salaryExtras.value)||0;
- const regPay=reg*rate, p125=h125*rate*1.25, p150=h150*rate*1.5, extraHPay=extraH*rate, gross=regPay+p125+p150+extraHPay+extras;
+ const basePay=base, p125=h125*rate*1.25, p150=h150*rate*1.5, extraHPay=extraH*rate, gross=basePay+p125+p150+extraHPay+extras;
+ const AUG_GROSS=11881.95, AUG_NET=10513.93, AUG_MANDATORY=858.02, AUG_PENSION=510.00;
+ const mandatoryRatio=AUG_MANDATORY/AUG_GROSS, pensionRatio=AUG_PENSION/AUG_GROSS;
+ const estMandatory=gross*mandatoryRatio, estPension=gross*pensionRatio, net=gross-estMandatory-estPension;
  salaryGross.textContent='₪'+gross.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
  salaryBreakdown.innerHTML=
    '<div class="calcrow"><span>תקופת שכר</span><b dir="ltr">'+range(+y.value,m)+'</b></div>'+
-   '<div class="calcrow"><span>רגיל</span><b>₪'+regPay.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>שכר בסיס</span><b>₪'+basePay.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>תקן / שעות רגילות מדווחות</span><b>'+std.toFixed(2)+' / '+reg.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>125%</span><b>₪'+p125.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>150%</span><b>₪'+p150.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>שעות נוספות בתשלום</span><b>₪'+extraHPay.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>תוספות קבועות</span><b>₪'+extras.toFixed(2)+'</b></div>';
+ salaryNet.textContent='₪'+net.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
+ netBreakdown.innerHTML=
+   '<div class="calcrow"><span>ניכויי חובה משוערים</span><b>₪'+estMandatory.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>גמל/פנסיה משוער</span><b>₪'+estPension.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>יחס נטו בתלוש הבסיס</span><b>'+((AUG_NET/AUG_GROSS)*100).toFixed(1)+'%</b></div>'+
+   '<div class="calcrow"><span>אוגוסט בפועל</span><b>₪10,513.93 נטו</b></div>';
  if(saveState){
    localStorage.setItem('worktimeHourlyRate',hourlyRate.value||'');
-   localStorage.setItem(salaryStateKey(),JSON.stringify({rate:hourlyRate.value||'',extras,reg,h125,h150,extraHours:extraH}));
+   localStorage.setItem(salaryStateKey(),JSON.stringify({baseSalary:base,standardHours:std,rate:hourlyRate.value||'',extras,reg,h125,h150,extraHours:extraH}));
    salaryNote.textContent=currentUser?'החישוב נשמר ומסונכרן. זהו אומדן ברוטו לפני מסים, פנסיה וניכויים.':'החישוב נשמר במכשיר. זהו אומדן ברוטו לפני מסים, פנסיה וניכויים.';
    dbSaveSalarySettings();
  }
@@ -442,7 +465,7 @@ function renderLog(){
 attendanceTabBtn.addEventListener('click',()=>{attendanceTabBtn.classList.add('active');salaryTabBtn.classList.remove('active');attendancePane.classList.add('active');salaryPane.classList.remove('active')});
 salaryTabBtn.addEventListener('click',()=>{salaryTabBtn.classList.add('active');attendanceTabBtn.classList.remove('active');salaryPane.classList.add('active');attendancePane.classList.remove('active');loadSalary()});
 document.getElementById('salaryCalcBtn').addEventListener('click',()=>calcSalary(true));
-[hourlyRate,salaryExtras,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
+[baseSalary,standardHours,hourlyRate,salaryExtras,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
 months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
 months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;render()},{passive:false});
 y.addEventListener('change',render);
