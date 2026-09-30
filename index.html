@@ -121,7 +121,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v17</div>
+<div class="foot">WorkTime • גרסת מובייל • v18</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -233,6 +233,12 @@ async function dbLoadWorkEntries(){
    const k=year+'-'+month;
    reports[k]=reports[k]||{};
    reports[k][r.work_date]={in:(r.entry_time||'').slice(0,5),out:(r.exit_time||'').slice(0,5)};
+   const day=d.getDate();
+   const payrollMonth=day>=23?month:(month===1?12:month-1);
+   const payrollYear=day>=23?year:(month===1?year-1:year);
+   const pk=payrollYear+'-'+payrollMonth;
+   reports[pk]=reports[pk]||{};
+   reports[pk][r.work_date]={in:(r.entry_time||'').slice(0,5),out:(r.exit_time||'').slice(0,5)};
    if(r.source==='manual') corr[r.work_date]={in:(r.entry_time||'').slice(0,5),out:(r.exit_time||'').slice(0,5)};
  }
  save(reports); saveEdits(corr); syncState.textContent='מסונכרן'; render();
@@ -378,6 +384,13 @@ function getBestEntryForDate(d){
  const corrected=edits()[iso];
  if(corrected && corrected.in && corrected.out) return {in:corrected.in,out:corrected.out};
  const reports=store();
+ const candidates=[
+   reports[d.getFullYear()+'-'+(d.getMonth()+1)],
+   reports[key()]
+ ];
+ for(const obj of candidates){
+   if(obj && obj[iso] && obj[iso].in && obj[iso].out) return obj[iso];
+ }
  for(const obj of Object.values(reports)){
    if(obj && obj[iso] && obj[iso].in && obj[iso].out) return obj[iso];
  }
@@ -431,7 +444,7 @@ function loadSalary(){
    salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
  } else {
    salaryRegular.value=0; salary125.value=0; salary150.value=0;
-   salaryNote.textContent='עדיין אין דיווחי כניסה ויציאה מלאים בתקופת השכר '+range(year,m)+'.';
+   salaryNote.textContent='עדיין לא נמצאו זוגות כניסה+יציאה מלאים בתקופת השכר '+range(year,m)+'. לאחר סנכרון או השלמת יציאה החישוב יתעדכן אוטומטית.';
  }
  calcSalary(false);
 }
