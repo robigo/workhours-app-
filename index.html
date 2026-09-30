@@ -27,7 +27,8 @@
 .settings-toggle{border:0;background:#eef2ff;color:#3730a3;border-radius:12px;padding:9px 11px;font:inherit;font-weight:900}
 .advanced-panel{display:none}.advanced-panel.show{display:block}
 .compact-toggle{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;font:inherit;font-weight:900;color:#334155;margin-top:10px}
-.today-card{display:none}
+.today-card{display:block;background:linear-gradient(135deg,#052e16,#166534);color:#fff;border-radius:18px;padding:15px;margin:8px 0 10px;box-shadow:var(--shadow)}
+.today-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.today-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;background:rgba(255,255,255,.14);padding:6px 9px;border-radius:999px}.today-status.offline{background:rgba(255,255,255,.12)}.today-timer{font-size:34px;font-weight:900;letter-spacing:1px;margin:10px 0 8px;direction:ltr;text-align:center}.today-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.today-metric{background:rgba(255,255,255,.11);border-radius:11px;padding:9px;text-align:center;font-size:10px}.today-metric b{display:block;font-size:15px;margin-top:4px}.today-progress{height:8px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden;margin-top:10px}.today-progress span{display:block;height:100%;background:#fff;border-radius:999px}.today-note{font-size:11px;color:#dcfce7;margin-top:7px;text-align:center}
 @media(max-width:680px){
  body{background:#f5f7fb}
  .app{padding:8px 10px 22px}
@@ -89,6 +90,17 @@
 </div>
 
 <div id="attendancePane" class="tabpane active">
+<section id="todayCard" class="today-card">
+<div class="today-head"><strong id="todayTitle">היום</strong><span id="todayStatus" class="today-status offline">● לא בעבודה</span></div>
+<div id="todayTimer" class="today-timer">00:00:00</div>
+<div class="today-grid">
+<div class="today-metric">כניסה<b id="todayIn">—</b></div>
+<div class="today-metric">125% היום<b id="today125">0.00</b></div>
+<div class="today-metric">שכר שנצבר<b id="todayPay">₪0</b></div>
+</div>
+<div class="today-progress"><span id="todayProgressBar" style="width:0%"></span></div>
+<div id="todayNote" class="today-note">לא בוצעה כניסה היום</div>
+</section>
 <section id="summary" class="grid"></section>
 
 <section class="report">
@@ -166,7 +178,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v44</div>
+<div class="foot">WorkTime • גרסת מובייל • v45</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -190,6 +202,7 @@ const salaryRegular=document.getElementById('salaryRegular'), salary125=document
 const salaryPeriod=document.getElementById('salaryPeriod'), salaryGross=document.getElementById('salaryGross'), salaryBreakdown=document.getElementById('salaryBreakdown'), salaryNote=document.getElementById('salaryNote');
 const salaryNet=document.getElementById('salaryNet'), netBreakdown=document.getElementById('netBreakdown'), salaryDaysDetail=document.getElementById('salaryDaysDetail');
 const cloudSyncBtn=document.getElementById('cloudSyncBtn'), cloudSyncMsg=document.getElementById('cloudSyncMsg');
+const todayTitle=document.getElementById('todayTitle'),todayStatus=document.getElementById('todayStatus'),todayTimer=document.getElementById('todayTimer'),todayIn=document.getElementById('todayIn'),today125=document.getElementById('today125'),todayPay=document.getElementById('todayPay'),todayProgressBar=document.getElementById('todayProgressBar'),todayNote=document.getElementById('todayNote');
 const authBox=document.getElementById('authBox'), authToggle=document.getElementById('authToggle'), authEmail=document.getElementById('authEmail'), authPassword=document.getElementById('authPassword'), authMsg=document.getElementById('authMsg'), signOutBtn=document.getElementById('signOutBtn'), syncState=document.getElementById('syncState');
 let m=9, manualType='in';
 const known={
@@ -532,6 +545,7 @@ async function syncLocalAttendanceToCloud(){
  cloudSyncMsg.textContent='סנכרון הושלם: '+ok+' נשמרו'+(failed?' | '+failed+' נכשלו':'')+'.';
  await dbLoadPeriodEntries(+y.value,m);
  await loadSalary();
+ updateTodayCard();
 }
 async function dbLoadPeriodEntries(year,month){
  if(!currentUser)return;
@@ -654,6 +668,49 @@ function calcSalary(saveState=true){
    dbSaveSalarySettings();
  }
 }
+function getTodayEntry(){
+ const now=new Date(), iso=isoLocal(now);
+ const dbv=dbEntriesByDate[iso];
+ if(dbv&&(dbv.in||dbv.out))return dbv;
+ const e=edits()[iso]; if(e&&(e.in||e.out))return e;
+ for(const obj of Object.values(store())){if(obj&&obj[iso]&&(obj[iso].in||obj[iso].out))return obj[iso]}
+ return {};
+}
+function formatDuration(sec){
+ sec=Math.max(0,Math.floor(sec));const hh=Math.floor(sec/3600),mm=Math.floor((sec%3600)/60),ss=sec%60;
+ return pad(hh)+':'+pad(mm)+':'+pad(ss);
+}
+function updateTodayCard(){
+ const now=new Date(), iso=isoLocal(now), entry=getTodayEntry();
+ todayTitle.textContent='היום • יום '+dayName(now)+' • '+pad(now.getDate())+'/'+pad(now.getMonth()+1);
+ todayIn.textContent=entry.in||'—';
+ let elapsed=0, active=!!(entry.in&&!entry.out);
+ if(entry.in){
+   const start=new Date(iso+'T'+entry.in+':00');
+   const end=entry.out?new Date(iso+'T'+entry.out+':00'):now;
+   elapsed=Math.max(0,(end-start)/1000);
+ }
+ todayTimer.textContent=formatDuration(elapsed);
+ todayStatus.textContent=active?'● בעבודה':'● '+(entry.out?'יום הושלם':'לא בעבודה');
+ todayStatus.classList.toggle('offline',!active);
+ let h125=0,h150=0;
+ if(entry.in){
+   const temp={in:entry.in,out:entry.out||hm()};
+   const split=splitPayHoursForDay(now,temp);h125=split.h125||0;h150=split.h150||0;
+ }
+ today125.textContent=h125.toFixed(2);
+ const rate=parseFloat(hourlyRate?.value)||46.70;
+ const regularHours=Math.max(0,elapsed/3600-h125-h150);
+ const pay=regularHours*rate+h125*rate*1.25+h150*rate*1.5;
+ todayPay.textContent='₪'+pay.toFixed(0);
+ const target=9*3600; todayProgressBar.style.width=Math.min(100,(elapsed/target)*100).toFixed(1)+'%';
+ if(active){
+   const end17=new Date(iso+'T17:00:00');
+   const minsTo=Math.round((end17-now)/60000);
+   todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד 17:00':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
+ }else todayNote.textContent=entry.out?'הדיווח להיום הושלם':'לא בוצעה כניסה היום';
+}
+setInterval(updateTodayCard,1000);
 function render(){
  const year=+y.value;
  renderMonths();
@@ -686,6 +743,7 @@ async function setReport(type,t){
  const all=store();all[key()]=all[key()]||{};all[key()][date.value]=all[key()][date.value]||{};all[key()][date.value][type]=t;save(all);
  msg.textContent=(type==='in'?'כניסה':'יציאה')+' נשמרה בשעה '+t;renderLog(); renderCalendarMonth(+y.value,m);
  const cur=store()[key()]?.[date.value]||{}; await dbUpsertWorkEntry(date.value,cur.in||null,cur.out||null,'clock','work'); await loadSalary();
+ updateTodayCard();
 }
 function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
