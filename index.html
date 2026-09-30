@@ -105,7 +105,9 @@
 </div>
 <div class="actions">
 <button id="salaryCalcBtn" class="btn manual">חשב שכר משוער</button>
+<button id="cloudSyncBtn" class="btn manual">סנכרן נתוני המכשיר לענן</button>
 </div>
+<div id="cloudSyncMsg" class="msg"></div>
 <div id="salaryNote" class="msg"></div>
 <div id="salaryDaysDetail" class="log"></div>
 <div id="salaryResult" class="salaryresult">
@@ -122,7 +124,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v26</div>
+<div class="foot">WorkTime • גרסת מובייל • v27</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -145,6 +147,7 @@ const hourlyRate=document.getElementById('hourlyRate'), salaryExtras=document.ge
 const salaryRegular=document.getElementById('salaryRegular'), salary125=document.getElementById('salary125'), salary150=document.getElementById('salary150'), salaryPaidExtraHours=document.getElementById('salaryPaidExtraHours');
 const salaryPeriod=document.getElementById('salaryPeriod'), salaryGross=document.getElementById('salaryGross'), salaryBreakdown=document.getElementById('salaryBreakdown'), salaryNote=document.getElementById('salaryNote');
 const salaryNet=document.getElementById('salaryNet'), netBreakdown=document.getElementById('netBreakdown'), salaryDaysDetail=document.getElementById('salaryDaysDetail');
+const cloudSyncBtn=document.getElementById('cloudSyncBtn'), cloudSyncMsg=document.getElementById('cloudSyncMsg');
 const authBox=document.getElementById('authBox'), authToggle=document.getElementById('authToggle'), authEmail=document.getElementById('authEmail'), authPassword=document.getElementById('authPassword'), authMsg=document.getElementById('authMsg'), signOutBtn=document.getElementById('signOutBtn'), syncState=document.getElementById('syncState');
 let m=9, manualType='in';
 const known={
@@ -442,6 +445,31 @@ function calculatePeriodPayHours(year,month){
  }
  return {regular,h125,h150,daysCount,details};
 }
+async function syncLocalAttendanceToCloud(){
+ if(!currentUser){cloudSyncMsg.textContent='יש להתחבר לחשבון לפני סנכרון.';return}
+ const reports=store(), corr=edits();
+ const merged={};
+ for(const daysObj of Object.values(reports||{})){
+   for(const [workDate,v] of Object.entries(daysObj||{})){
+     if(v&&(v.in||v.out)) merged[workDate]={in:v.in||null,out:v.out||null,source:'clock'};
+   }
+ }
+ for(const [workDate,v] of Object.entries(corr||{})){
+   if(v&&(v.in||v.out)) merged[workDate]={in:v.in||null,out:v.out||null,source:'manual'};
+ }
+ const entries=Object.entries(merged);
+ if(!entries.length){cloudSyncMsg.textContent='אין במכשיר הזה דיווחים מקומיים להעברה לענן.';return}
+ cloudSyncMsg.textContent='מסנכרן '+entries.length+' דיווחים לענן…';
+ let ok=0, failed=0;
+ for(const [workDate,v] of entries){
+   const payload={user_id:currentUser.id,work_date:workDate,entry_time:v.in,exit_time:v.out,source:v.source,status:'work'};
+   const {error}=await sb.from('work_entries').upsert(payload,{onConflict:'user_id,work_date'});
+   if(error){console.error('cloud sync',workDate,error);failed++;}else ok++;
+ }
+ cloudSyncMsg.textContent='סנכרון הושלם: '+ok+' נשמרו'+(failed?' | '+failed+' נכשלו':'')+'.';
+ await dbLoadPeriodEntries(+y.value,m);
+ await loadSalary();
+}
 async function dbLoadPeriodEntries(year,month){
  if(!currentUser)return;
  const [a,b]=bounds(year,month);
@@ -574,6 +602,7 @@ function renderLog(){
 attendanceTabBtn.addEventListener('click',()=>{attendanceTabBtn.classList.add('active');salaryTabBtn.classList.remove('active');attendancePane.classList.add('active');salaryPane.classList.remove('active')});
 salaryTabBtn.addEventListener('click',async()=>{salaryTabBtn.classList.add('active');attendanceTabBtn.classList.remove('active');salaryPane.classList.add('active');attendancePane.classList.remove('active');await loadSalary()});
 document.getElementById('salaryCalcBtn').addEventListener('click',()=>calcSalary(true));
+cloudSyncBtn.addEventListener('click',syncLocalAttendanceToCloud);
 [baseSalary,standardHours,hourlyRate,salaryExtras,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
 months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
 months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;render()},{passive:false});
