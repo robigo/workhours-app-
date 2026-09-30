@@ -41,7 +41,12 @@
  .tabs{top:54px;margin:8px 0;padding:4px}.tabbtn{padding:10px}
  .grid{grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.card{padding:9px;border-radius:13px;box-shadow:none}.value{font-size:17px}.label{font-size:10px}
  .report,.salarybox{margin-top:8px;padding:12px;border-radius:16px;box-shadow:none}
- .report .controls{grid-template-columns:1fr 1fr}.report .actions{grid-template-columns:1fr 1fr}.report .actions .manual{display:none}
+ .report h3{font-size:17px}
+ .report .controls{margin-top:9px}
+ .report .actions{gap:7px}
+ .report .btn{min-height:46px}
+ .editbox{margin-top:12px;padding-top:12px}
+ .report .controls{grid-template-columns:1fr 1fr}.report .actions{grid-template-columns:1fr 1fr}.report .actions .manual{display:block}
  .editbox,#log{display:none}
  .section{margin-top:10px}.section h3{font-size:16px}
  .day{padding:10px;border-radius:13px}.hours{grid-template-columns:repeat(4,1fr);gap:5px}.chip{padding:7px 5px;text-align:center}
@@ -116,8 +121,7 @@
 <button id="manualInBtn" class="btn manual">שמור כניסה ידנית</button><button id="manualOutBtn" class="btn manual">שמור יציאה ידנית</button>
 </div>
 <div id="msg" class="msg">בחר תאריך ואז דווח כניסה או יציאה.</div>
-<button id="attendanceAdvancedToggle" type="button" class="compact-toggle">עריכה ידנית והגדרות דיווח ▾</button>
-<div id="attendanceAdvanced" class="advanced-panel"><div class="editbox">
+<div class="editbox">
 <h4>עריכת שעות לפי הדוח</h4>
 <div class="hint">בחר תאריך למעלה, הזן כניסה ויציאה כפי שמופיעות בדוח ושמור.</div>
 <div class="editgrid">
@@ -128,7 +132,9 @@
 <button id="saveEditBtn" class="btn saveedit">שמור תיקון ליום</button>
 <button id="clearEditBtn" class="btn clearedit">בטל תיקון ידני</button>
 </div>
-</div><div id="log" class="log"></div></div>
+</div>
+<button id="attendanceLogToggle" type="button" class="compact-toggle">הצג היסטוריית דיווחים ▾</button>
+<div id="attendanceLogWrap" class="advanced-panel"><div id="log" class="log"></div></div>
 </section>
 
 <section class="section">
@@ -178,7 +184,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v47</div>
+<div class="foot">WorkTime • גרסת מובייל • v48</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -845,7 +851,7 @@ const togglePanel=(btnId,panelId,openText,closedText)=>{
    if(openText&&closedText)btn.textContent=open?openText:closedText;
  });
 };
-togglePanel('attendanceAdvancedToggle','attendanceAdvanced','סגור עריכה ידנית ▴','עריכה ידנית והגדרות דיווח ▾');
+togglePanel('attendanceLogToggle','attendanceLogWrap','הסתר היסטוריית דיווחים ▴','הצג היסטוריית דיווחים ▾');
 togglePanel('salaryAdvancedToggle','salaryAdvanced','סגור הגדרות שכר ▴','הגדרות שכר וכללי חישוב ▾');
 togglePanel('salaryDetailsToggle','salaryDetailsWrap','הסתר פירוט ימים ▴','הצג פירוט ימים ▾');
 document.getElementById('settingsToggle')?.addEventListener('click',()=>authBox.classList.toggle('show'));
