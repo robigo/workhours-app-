@@ -122,7 +122,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v23</div>
+<div class="foot">WorkTime • גרסת מובייל • v24</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -452,13 +452,14 @@ function loadSalary(){
  salaryExtras.value=state.extras??0;
  salaryPaidExtraHours.value=state.extraHours??0;
  const auto=calculatePeriodPayHours(year,m);
- const relevant=auto.details.filter(x=>x.status==='נכלל'||x.in||x.out);
- salaryDaysDetail.innerHTML=relevant.length?relevant.map(x=>'<div class="row"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span>'+(x.status==='נכלל'?('רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)):x.status)+'</span></div>').join(''):'<div class="hint" style="text-align:center;padding:10px">אין כרגע דיווחים בתקופת השכר 23→22.</div>';
+ const missing=auto.details.filter(x=>x.status!=='נכלל');
+ salaryDaysDetail.innerHTML=auto.details.map(x=>'<div class="row"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span>'+(x.status==='נכלל'?('רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)):('<b>לא נכלל:</b> '+x.status))+'</span></div>').join('');
+
  if(auto.daysCount>0){
    salaryRegular.value=auto.regular.toFixed(2);
    salary125.value=auto.h125.toFixed(2);
    salary150.value=auto.h150.toFixed(2);
-   salaryNote.textContent='חושב אוטומטית מ-'+auto.daysCount+' ימי דיווח בתקופה '+range(year,m)+'. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ שעתיים ראשונות = 125% ומהשעה השלישית = 150%.';
+   salaryNote.textContent='חושב אוטומטית מ-'+auto.daysCount+' ימים עם זוג כניסה+יציאה. '+missing.length+' ימים בתקופה אינם נכללים כרגע כי חסר בהם דיווח מלא. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ שעתיים ראשונות = 125% ומהשעה השלישית = 150%.';
  } else if(state.reg!=null && (Number(state.reg)||Number(state.h125)||Number(state.h150))){
    salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
    salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
