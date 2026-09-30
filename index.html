@@ -37,6 +37,7 @@
 </div>
 <div class="actions">
 <button id="signInBtn" class="btn in">התחבר</button>
+<button id="magicLinkBtn" class="btn manual">שלח לי קישור כניסה</button>
 <button id="signUpBtn" class="btn manual">הרשמה</button>
 <button id="resendBtn" class="btn manual">שלח מחדש אימות</button>
 <button id="resetPasswordBtn" class="btn manual">איפוס סיסמה</button>
@@ -134,7 +135,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v38</div>
+<div class="foot">WorkTime • גרסת מובייל • v39</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -691,6 +692,16 @@ document.getElementById('signInBtn').addEventListener('click',async()=>{
  const {data,error}=await sb.auth.signInWithPassword({email:authEmail.value.trim(),password:authPassword.value});
  if(error){authMsg.textContent='שגיאה: '+error.message;return}
  authMsg.textContent='התחברת בהצלחה'; authBox.classList.remove('show'); await refreshAuthUi(data.session);
+});
+document.getElementById('magicLinkBtn').addEventListener('click',async()=>{
+ const email=authEmail.value.trim();
+ if(!email){authMsg.textContent='הזן אימייל כדי לקבל קישור כניסה.';return}
+ authMsg.textContent='שולח קישור כניסה חדש…';
+ const {error}=await sb.auth.signInWithOtp({
+   email,
+   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=39'}
+ });
+ authMsg.textContent=error?'שגיאה: '+error.message:'נשלח קישור כניסה חדש למייל. פתח את הקישור האחרון שקיבלת.';
 });
 document.getElementById('signUpBtn').addEventListener('click',async()=>{
  authMsg.textContent='יוצר חשבון…';
