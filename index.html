@@ -124,7 +124,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v31</div>
+<div class="foot">WorkTime • גרסת מובייל • v32</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -264,7 +264,7 @@ async function dbLoadWorkEntries(){
 async function dbSaveSalarySettings(){
  if(!currentUser)return;
  const safeRate=parseFloat(hourlyRate.value);
- const payload={user_id:currentUser.id,hourly_rate:(Number.isFinite(safeRate)&&safeRate>0)?safeRate:46.70,fixed_extras:parseFloat(salaryExtras.value)||0,multiplier_125:1.25,multiplier_150:1.5};
+ const payload={user_id:currentUser.id,hourly_rate:(Number.isFinite(safeRate)&&safeRate>0)?safeRate:46.70,fixed_extras:(parseFloat(salaryExtras.value)>0?parseFloat(salaryExtras.value):100),multiplier_125:1.25,multiplier_150:1.5};
  const {error}=await sb.from('salary_settings').upsert(payload,{onConflict:'user_id'});
  if(error){syncState.textContent='שגיאת סנכרון';console.error(error)} else syncState.textContent='מסונכרן';
 }
@@ -277,7 +277,9 @@ async function dbLoadSalarySettings(){
    if(Number.isFinite(dbRate) && dbRate>0) localStorage.setItem('worktimeHourlyRate',String(dbRate));
    else localStorage.setItem('worktimeHourlyRate','46.70');
    const state={}; try{Object.assign(state,JSON.parse(localStorage.getItem(salaryStateKey())||'{}'))}catch{}
-   state.extras=Number(data.fixed_extras||0); localStorage.setItem(salaryStateKey(),JSON.stringify(state));
+   const dbExtras=Number(data.fixed_extras);
+   state.extras=(Number.isFinite(dbExtras)&&dbExtras>0)?dbExtras:100;
+   localStorage.setItem(salaryStateKey(),JSON.stringify(state));
  }
 }
 async function migrateLocalToDb(){
@@ -520,7 +522,7 @@ async function loadSalary(){
  standardHours.value=state.standardHours??182;
  const savedRate=Number(state.rate||localStorage.getItem('worktimeHourlyRate'));
  hourlyRate.value=(Number.isFinite(savedRate)&&savedRate>0)?savedRate.toFixed(2):'46.70';
- salaryExtras.value=state.extras??0;
+ salaryExtras.value=(state.extras!=null && Number(state.extras)>0)?Number(state.extras):100;
  salaryPaidExtraHours.value=state.extraHours??0;
  const auto=calculatePeriodPayHours(year,m);
  const missing=auto.details.filter(x=>x.status!=='נכלל');
