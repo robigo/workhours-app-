@@ -134,7 +134,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v34</div>
+<div class="foot">WorkTime • גרסת מובייל • v35</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -542,7 +542,8 @@ async function loadSalary(){
  document.getElementById('hours125Label').textContent=officialClosed?'שעות 125%':'שעות 125% — נצבר עד כה';
  document.getElementById('hours150Label').textContent=officialClosed?'שעות 150%':'שעות 150% — נצבר עד כה';
  const todayIso=isoLocal(new Date());
- const visibleDetails=officialClosed?auto.details:auto.details.filter(x=>x.date<=todayIso);
+ const isSaturdayIso=(iso)=>new Date(iso+'T12:00:00').getDay()===6;
+ const visibleDetails=(officialClosed?auto.details:auto.details.filter(x=>x.date<=todayIso)).filter(x=>!isSaturdayIso(x.date));
  const pendingCount=visibleDetails.filter(x=>x.status!=='נכלל').length;
  const calculatedCount=visibleDetails.filter(x=>x.status==='נכלל').length;
 
