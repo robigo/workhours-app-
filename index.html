@@ -92,7 +92,7 @@
 <section class="salarybox">
 <h3>שכר משוער — מחזור 23 → 22</h3>
 <div id="salaryPeriod" class="period" style="background:#f1f5f9;color:#0f172a"></div>
-<div class="hint" style="margin-top:8px">החישוב כאן נפרד מתצוגת החודש ומבוסס רק על תקופת השכר 23 בחודש עד 22 בחודש הבא.</div>
+<div class="hint" style="margin-top:8px">החישוב כאן נפרד מתצוגת החודש ומבוסס רק על תקופת השכר 23 בחודש עד 22 בחודש הבא. א׳–ה׳: 08:00–17:00 רגיל, אחרי 17:00 = 125%. יום ו׳: שעתיים ראשונות = 125%, מהשעה השלישית = 150%.</div>
 <div class="salarygrid">
 <label>שכר בסיס חודשי (₪)<input id="baseSalary" type="number" step="0.01" min="0" value="8500"></label>
 <label>תעריף שעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" value="46.70"></label>
@@ -121,7 +121,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v15</div>
+<div class="foot">WorkTime • גרסת מובייל • v16</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -373,6 +373,43 @@ function periodLiveHours(year,month){
  }
  return total;
 }
+function getBestEntryForDate(d){
+ const iso=isoLocal(d), dd=pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();
+ const corrected=edits()[iso];
+ if(corrected && corrected.in && corrected.out) return {in:corrected.in,out:corrected.out};
+ const reports=store();
+ for(const obj of Object.values(reports)){
+   if(obj && obj[iso] && obj[iso].in && obj[iso].out) return obj[iso];
+ }
+ const r=reportRowMap()[dd];
+ if(r && r[3] && r[4] && r[3]!=='—' && r[4]!=='—') return {in:r[3],out:r[4]};
+ return null;
+}
+function splitPayHoursForDay(d,entry){
+ if(!entry||!entry.in||!entry.out)return {regular:0,h125:0,h150:0,total:0};
+ let start=mins(entry.in), end=mins(entry.out);
+ if(end<start) end+=1440;
+ const total=Math.max(0,(end-start)/60);
+ if(d.getDay()===5){
+   return {regular:0,h125:Math.min(2,total),h150:Math.max(0,total-2),total};
+ }
+ if(d.getDay()===6) return {regular:0,h125:0,h150:0,total};
+ const regularStart=8*60, regularEnd=17*60;
+ const regularMinutes=Math.max(0,Math.min(end,regularEnd)-Math.max(start,regularStart));
+ const overtime125Minutes=Math.max(0,end-Math.max(start,regularEnd));
+ return {regular:regularMinutes/60,h125:overtime125Minutes/60,h150:0,total};
+}
+function calculatePeriodPayHours(year,month){
+ const [a,b]=bounds(year,month);
+ let regular=0,h125=0,h150=0,daysCount=0;
+ for(let d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
+   const e=getBestEntryForDate(d);
+   if(!e)continue;
+   const s=splitPayHoursForDay(d,e);
+   regular+=s.regular;h125+=s.h125;h150+=s.h150;daysCount++;
+ }
+ return {regular,h125,h150,daysCount};
+}
 function salaryStateKey(){return 'worktimeSalary-'+key()}
 function loadSalary(){
  const year=+y.value, k=key(), official=known[k];
@@ -383,15 +420,15 @@ function loadSalary(){
  hourlyRate.value=state.rate||localStorage.getItem('worktimeHourlyRate')||'46.70';
  salaryExtras.value=state.extras??0;
  salaryPaidExtraHours.value=state.extraHours??0;
+ const auto=calculatePeriodPayHours(year,m);
  if(state.reg!=null){
    salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
-   salaryNote.textContent='הנתונים נערכו ידנית ונשמרו במכשיר.';
- } else if(official){
-   salaryRegular.value=official.sum[1]||0; salary125.value=official.sum[2]||0; salary150.value=official.sum[3]||0;
-   salaryNote.textContent='השעות נטענו מסיכום הדוח הרשמי לתקופה.';
+   salaryNote.textContent='החלוקה נשמרה ידנית. חישוב אוטומטי לפי דיווחי התקופה: רגיל '+auto.regular.toFixed(2)+' | 125% '+auto.h125.toFixed(2)+' | 150% '+auto.h150.toFixed(2)+'.';
  } else {
-   salaryRegular.value=periodLiveHours(year,m).toFixed(2); salary125.value=0; salary150.value=0;
-   salaryNote.textContent='אין עדיין סיכום רשמי למחזור הזה. רק דיווחים בתוך '+range(year,m)+' נטענו כרגע כשעות רגילות; ניתן לערוך את החלוקה לפני החישוב.';
+   salaryRegular.value=auto.regular.toFixed(2);
+   salary125.value=auto.h125.toFixed(2);
+   salary150.value=auto.h150.toFixed(2);
+   salaryNote.textContent='חושב אוטומטית מ-'+auto.daysCount+' ימי דיווח בתקופה '+range(year,m)+'. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ שעתיים ראשונות = 125% ומהשעה השלישית = 150%.';
  }
  calcSalary(false);
 }
@@ -407,7 +444,9 @@ function calcSalary(saveState=true){
  salaryBreakdown.innerHTML=
    '<div class="calcrow"><span>תקופת שכר</span><b dir="ltr">'+range(+y.value,m)+'</b></div>'+
    '<div class="calcrow"><span>שכר בסיס</span><b>₪'+basePay.toFixed(2)+'</b></div>'+
-   '<div class="calcrow"><span>תקן / שעות רגילות מדווחות</span><b>'+std.toFixed(2)+' / '+reg.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>תקן / שעות רגילות מחושבות</span><b>'+std.toFixed(2)+' / '+reg.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>כלל א׳–ה׳</span><b>אחרי 17:00 → 125%</b></div>'+
+   '<div class="calcrow"><span>כלל יום ו׳</span><b>2 ש׳ ראשונות 125%, היתר 150%</b></div>'+
    '<div class="calcrow"><span>125%</span><b>₪'+p125.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>150%</span><b>₪'+p150.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>שעות נוספות בתשלום</span><b>₪'+extraHPay.toFixed(2)+'</b></div>'+
