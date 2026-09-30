@@ -107,6 +107,7 @@
 <button id="salaryCalcBtn" class="btn manual">חשב שכר משוער</button>
 </div>
 <div id="salaryNote" class="msg"></div>
+<div id="salaryDaysDetail" class="log"></div>
 <div id="salaryResult" class="salaryresult">
 <div class="label" style="color:#cbd5e1">ברוטו משוער</div>
 <div id="salaryGross" class="big">₪0.00</div>
@@ -121,7 +122,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v19</div>
+<div class="foot">WorkTime • גרסת מובייל • v20</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -143,7 +144,7 @@ const baseSalary=document.getElementById('baseSalary'), standardHours=document.g
 const hourlyRate=document.getElementById('hourlyRate'), salaryExtras=document.getElementById('salaryExtras');
 const salaryRegular=document.getElementById('salaryRegular'), salary125=document.getElementById('salary125'), salary150=document.getElementById('salary150'), salaryPaidExtraHours=document.getElementById('salaryPaidExtraHours');
 const salaryPeriod=document.getElementById('salaryPeriod'), salaryGross=document.getElementById('salaryGross'), salaryBreakdown=document.getElementById('salaryBreakdown'), salaryNote=document.getElementById('salaryNote');
-const salaryNet=document.getElementById('salaryNet'), netBreakdown=document.getElementById('netBreakdown');
+const salaryNet=document.getElementById('salaryNet'), netBreakdown=document.getElementById('netBreakdown'), salaryDaysDetail=document.getElementById('salaryDaysDetail');
 const authBox=document.getElementById('authBox'), authToggle=document.getElementById('authToggle'), authEmail=document.getElementById('authEmail'), authPassword=document.getElementById('authPassword'), authMsg=document.getElementById('authMsg'), signOutBtn=document.getElementById('signOutBtn'), syncState=document.getElementById('syncState');
 let m=9, manualType='in';
 const known={
@@ -422,13 +423,19 @@ function splitPayHoursForDay(d,entry){
 function calculatePeriodPayHours(year,month){
  const [a,b]=bounds(year,month);
  let regular=0,h125=0,h150=0,daysCount=0;
+ const details=[];
  for(let d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
-   const e=getBestEntryForDate(d);
-   if(!e)continue;
+   const iso=isoLocal(d), e=getBestEntryForDate(d);
+   if(!e){
+     const any=dbEntriesByDate[iso] || edits()[iso] || Object.values(store()).map(o=>o&&o[iso]).find(Boolean);
+     details.push({date:iso,status:any&&(any.in||any.out)?'חסר זוג כניסה/יציאה':'אין דיווח',in:any?.in||'',out:any?.out||''});
+     continue;
+   }
    const s=splitPayHoursForDay(d,e);
    regular+=s.regular;h125+=s.h125;h150+=s.h150;daysCount++;
+   details.push({date:iso,status:'נכלל',in:e.in,out:e.out,regular:s.regular,h125:s.h125,h150:s.h150});
  }
- return {regular,h125,h150,daysCount};
+ return {regular,h125,h150,daysCount,details};
 }
 function salaryStateKey(){return 'worktimeSalary-'+key()}
 function loadSalary(){
@@ -441,6 +448,8 @@ function loadSalary(){
  salaryExtras.value=state.extras??0;
  salaryPaidExtraHours.value=state.extraHours??0;
  const auto=calculatePeriodPayHours(year,m);
+ const relevant=auto.details.filter(x=>x.status==='נכלל'||x.in||x.out);
+ salaryDaysDetail.innerHTML=relevant.length?relevant.map(x=>'<div class="row"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span>'+(x.status==='נכלל'?('רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)):x.status)+'</span></div>').join(''):'<div class="hint" style="text-align:center;padding:10px">אין כרגע דיווחים בתקופת השכר 23→22.</div>';
  if(auto.daysCount>0){
    salaryRegular.value=auto.regular.toFixed(2);
    salary125.value=auto.h125.toFixed(2);
