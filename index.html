@@ -349,11 +349,11 @@ function renderCalendarMonth(year,month){
    if(e && (e.in||e.out)){
      const h=workedHours(e);
      rows.push({date:dd,day:dayName(d),status:'נערך ידנית',in:e.in||'—',out:e.out||'—',paid:h?h.toFixed(2):'—',source:'תיקון ידני'});
-   } else if(r){
-     rows.push({date:dd,day:r[1],status:r[2],in:r[3],out:r[4],paid:r[5],source:'דוח רשמי'});
    } else if(live.in||live.out){
      const h=workedHours(live);
-     rows.push({date:dd,day:dayName(d),status:live.in&&live.out?'דווח':'כניסה פתוחה',in:live.in||'—',out:live.out||'—',paid:h?h.toFixed(2):'—',source:'דיווח'});
+     rows.push({date:dd,day:dayName(d),status:live.in&&live.out?'דווח':'כניסה פתוחה',in:live.in||'—',out:live.out||'—',paid:h?h.toFixed(2):'—',source:'דיווח משתמש'});
+   } else if(r){
+     rows.push({date:dd,day:r[1],status:r[2],in:r[3],out:r[4],paid:r[5],source:'דוח רשמי'});
    } else if((month===7 && d.getDate()>=23) || month!==7){
      rows.push({date:dd,day:dayName(d),status:d.getDay()===6?'מנוחה':'לא מופיע בדוח',in:'—',out:'—',paid:'—',source:''});
    }
@@ -362,7 +362,7 @@ function renderCalendarMonth(year,month){
  summary.innerHTML=[
    ['סה״כ בתצוגת החודש',paidTotal.toFixed(2)],
    ['ימים עם נתון',rows.filter(r=>r.in!=='—'||r.status==='חופשה').length],
-   ['דיווחים חיים',rows.filter(r=>r.source==='דיווח').length],
+   ['דיווחים חיים',rows.filter(r=>r.source==='דיווח משתמש').length],
    ['ימים בחודש',rows.length]
  ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
  days.innerHTML='<div class="daily">'+rows.map(r=>`<article class="day"><div class="daytop"><div><b dir="ltr">${r.date}</b><div class="hint">יום ${r.day}${r.source?' • '+r.source:''}</div></div><span class="badge ${r.status==='עבודה'||r.status==='דווח'||r.status==='נערך ידנית'?'ok':'off'}">${r.status}</span></div><div class="hours"><div class="chip">כניסה<b>${r.in}</b></div><div class="chip">יציאה<b>${r.out}</b></div><div class="chip">לתשלום<b>${r.paid}</b></div><div class="chip">סטטוס<b>${r.status}</b></div></div></article>`).join('')+'</div>';
