@@ -134,7 +134,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v35</div>
+<div class="foot">WorkTime • גרסת מובייל • v36</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -548,11 +548,15 @@ async function loadSalary(){
  const calculatedCount=visibleDetails.filter(x=>x.status==='נכלל').length;
 
  salaryDaysDetail.innerHTML='<div class="period" style="margin-bottom:10px;background:#eef4ff;color:#0f172a"><strong>'+periodStatusText+'</strong>'+(officialClosed?'':' • '+calculatedCount+' ימים חושבו • '+pendingCount+' ימים עד היום ממתינים')+'</div>'+visibleDetails.map(x=>{
-   if(x.status!=='נכלל') return '<div class="row salary-day missing"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span class="ot-summary"><b>לא נכלל:</b> '+x.status+'</span></div>';
+   if(x.status!=='נכלל') const dObj=new Date(x.date+'T12:00:00');
+   const dName=dayName(dObj);
+   return '<div class="row salary-day missing"><b dir="ltr">'+x.date.split('-').reverse().join('/')+' <span style="color:#64748b;font-weight:800">יום '+dName+'</span></b><span>כניסה: <b>'+(x.in||'—')+'</b></span><span>יציאה: <b>'+(x.out||'—')+'</b></span><span class="ot-summary"><b>לא נכלל:</b> '+x.status+'</span></div>';
    const overtime=(x.h125||0)+(x.h150||0);
    const cls=(x.h150||0)>0?'ot150':((x.h125||0)>0?'ot125':'no-ot');
    const badge=(x.h150||0)>0?'<span class="ot-badge p150">נוספות '+overtime.toFixed(2)+' ש׳</span>':((x.h125||0)>0?'<span class="ot-badge p125">נוספות '+overtime.toFixed(2)+' ש׳</span>':'<span class="ot-badge none">ללא שעות נוספות</span>');
-   return '<div class="row salary-day '+cls+'"><b dir="ltr">'+x.date.split('-').reverse().join('/')+'</b><span>כניסה: <b>'+x.in+'</b></span><span>יציאה: <b>'+x.out+'</b></span><span class="ot-summary">'+badge+'<br>רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)+'</span></div>';
+   const dObj=new Date(x.date+'T12:00:00');
+   const dName=dayName(dObj);
+   return '<div class="row salary-day '+cls+'"><b dir="ltr">'+x.date.split('-').reverse().join('/')+' <span style="color:#64748b;font-weight:800">יום '+dName+'</span></b><span>כניסה: <b>'+x.in+'</b></span><span>יציאה: <b>'+x.out+'</b></span><span class="ot-summary">'+badge+'<br>רגיל '+x.regular.toFixed(2)+' | 125% '+x.h125.toFixed(2)+' | 150% '+x.h150.toFixed(2)+'</span></div>';
  }).join('');
 
  if(officialClosed){
