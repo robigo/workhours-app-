@@ -31,7 +31,7 @@
 .calendar-head,.calendar-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 .calendar-head{margin-bottom:6px}.calendar-head div{text-align:center;font-size:11px;font-weight:900;color:var(--muted);padding:5px 0}
 .cal-empty{min-height:78px}.cal-day{min-height:92px;border:1px solid var(--line);border-radius:13px;padding:8px;background:#f8fafc;overflow:hidden}
-.cal-day.has-data{background:#f0fdf4;border-color:#bbf7d0}.cal-day.manual-data{background:#eef2ff;border-color:#c7d2fe}.cal-day.leave-data{background:#fff7ed;border-color:#fed7aa}.cal-day.missing-data{background:#f8fafc;color:#64748b}
+.cal-day.has-data{background:#f0fdf4;border-color:#bbf7d0}.cal-day.manual-data{background:#eef2ff;border-color:#c7d2fe}.cal-day.leave-data{background:#fff7ed;border-color:#fed7aa}.cal-day.sick-data{background:#fef2f2;border-color:#fecaca}.cal-day.holiday-data{background:#faf5ff;border-color:#e9d5ff}.cal-day.optional-data{background:#eff6ff;border-color:#bfdbfe}.cal-day.rest-data{background:#f8fafc;border-color:#e2e8f0}.cal-day.missing-data{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
 .cal-date{display:flex;justify-content:space-between;align-items:center;gap:4px}.cal-num{font-size:17px;font-weight:900}.cal-weekday{font-size:10px;color:var(--muted);font-weight:800}
 .cal-status{font-size:9px;font-weight:900;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-time{font-size:10px;margin-top:6px;line-height:1.45;direction:ltr;text-align:center}.cal-time b{font-size:11px}.cal-paid{font-size:10px;margin-top:4px;text-align:center;color:#334155;font-weight:800}.daytop{display:flex;justify-content:space-between;gap:8px}.badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800}.ok{background:#ecfdf5;color:#047857}.off{background:#f3f4f6;color:#6b7280}.hours{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.chip{background:#f8fafc;border-radius:9px;padding:8px;font-size:11px}.chip b{display:block;margin-top:3px}.foot{text-align:center;color:var(--muted);font-size:11px;margin:18px 0}
 @media(max-width:680px){.app{padding:8px}.months{grid-template-columns:repeat(3,1fr)}.month{min-height:54px}.grid{grid-template-columns:repeat(2,1fr)}.controls,.actions{grid-template-columns:1fr}.manual{grid-column:auto}.row{grid-template-columns:1fr 1fr}.row button{grid-column:1/-1;width:100%}.hours{grid-template-columns:1fr 1fr}.hero{border-radius:18px}}
@@ -133,7 +133,7 @@
 <div class="today-progress"><span id="todayProgressBar" style="width:0%"></span></div>
 <div id="todayNote" class="today-note">לא בוצעה כניסה היום</div>
 </section>
-<section id="summary" class="grid"></section>
+<section id="summary" class="grid"></section><section id="dayTypeSummary" class="grid" style="margin-top:0"></section>
 
 <section class="report">
 <h3>דיווח כניסה / יציאה</h3>
@@ -148,6 +148,10 @@
 <button id="manualInBtn" class="btn manual">שמור כניסה ידנית</button><button id="manualOutBtn" class="btn manual">שמור יציאה ידנית</button>
 </div>
 <div id="msg" class="msg">בחר תאריך ואז דווח כניסה או יציאה.</div>
+<div class="editbox" id="dayTypeBox"><h4>סוג יום</h4><div class="hint">משפיע כרגע על התצוגה והסיכום בלבד — לא משנה את חישוב השכר.</div>
+<select id="dayType" style="width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit;margin-top:8px">
+<option value="">לפי הדוח / הדיווח הקיים</option><option value="עבודה">🟢 עבודה</option><option value="חופשה">🟡 חופשה</option><option value="מחלה">🔴 מחלה</option><option value="חג">🟣 חג</option><option value="מנוחה">⚪ מנוחה</option><option value="יום אופציונלי">🔵 יום אופציונלי</option></select>
+<div class="editactions"><button id="saveDayTypeBtn" class="btn saveedit">שמור סוג יום</button><button id="clearDayTypeBtn" class="btn clearedit">נקה בחירה</button></div></div>
 <div class="editbox" id="shiftPlannerBox">
 <h4>📅 תכנון משמרת</h4>
 <div class="hint">תכנון בלבד — לא נרשמת כניסה או יציאה ללא אישור שלך.</div>
@@ -228,7 +232,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v60</div>
+<div class="foot">WorkTime • גרסת מובייל • v61</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -266,9 +270,9 @@ let currentUser=null;
 let dbEntriesByDate={};
 const names=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const y=document.getElementById('year'), months=document.getElementById('months'), period=document.getElementById('period');
-const summary=document.getElementById('summary'), days=document.getElementById('days');
+const summary=document.getElementById('summary'), days=document.getElementById('days'), dayTypeSummary=document.getElementById('dayTypeSummary');
 const date=document.getElementById('date'), time=document.getElementById('time'), msg=document.getElementById('msg'), log=document.getElementById('log');
-const editIn=document.getElementById('editIn'), editOut=document.getElementById('editOut');
+const editIn=document.getElementById('editIn'), editOut=document.getElementById('editOut'), dayType=document.getElementById('dayType');
 const shiftDate=document.getElementById('shiftDate'),shiftStart=document.getElementById('shiftStart'),shiftEnd=document.getElementById('shiftEnd'),shiftMsg=document.getElementById('shiftMsg');
 const shiftAlert=document.getElementById('shiftAlert'),shiftAlertText=document.getElementById('shiftAlertText'),confirmShiftBtn=document.getElementById('confirmShiftBtn'),dismissShiftBtn=document.getElementById('dismissShiftBtn');
 const reportPane=document.getElementById('reportPane'), calendarPane=document.getElementById('calendarPane'), salaryPane=document.getElementById('salaryPane');
@@ -362,6 +366,8 @@ function store(){try{return JSON.parse(localStorage.getItem('worktimeReports')||
 function save(o){localStorage.setItem('worktimeReports',JSON.stringify(o))}
 function edits(){try{return JSON.parse(localStorage.getItem('worktimeEdits')||'{}')}catch{return {}}}
 function saveEdits(o){localStorage.setItem('worktimeEdits',JSON.stringify(o))}
+function dayTypes(){try{return JSON.parse(localStorage.getItem('worktimeDayTypes')||'{}')}catch{return {}}}
+function saveDayTypes(o){localStorage.setItem('worktimeDayTypes',JSON.stringify(o))}
 async function dbUpsertWorkEntry(workDate,inTime,outTime,source='manual',status='work'){
  if(!currentUser)return;
  const payload={user_id:currentUser.id,work_date:workDate,entry_time:inTime||null,exit_time:outTime||null,source,status};
@@ -533,6 +539,7 @@ function renderCalendarMonth(year,month){
    return new Date(yy,mm-1,dd,12)<=today;
  }):(isFutureMonth?[]:rows);
  const visibleRows=visibleRowsBase.filter(r=>r.day!=='ש׳');
+ const typeOverrides=dayTypes();visibleRows.forEach(r=>{const iso=r.date.split('/').reverse().join('-');if(typeOverrides[iso])r.status=typeOverrides[iso]});
  const paidTotal=visibleRows.reduce((s,r)=>s+(parseFloat(r.paid)||0),0);
  summary.innerHTML=[
    ['סה״כ בתצוגת החודש',paidTotal.toFixed(2)],
@@ -540,6 +547,8 @@ function renderCalendarMonth(year,month){
    ['דיווחים חיים',visibleRows.filter(r=>r.source==='דיווח משתמש').length],
    ['ימים מוצגים',visibleRows.length]
  ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
+ const countType=t=>visibleRows.filter(r=>r.status===t).length;
+ dayTypeSummary.innerHTML=[['🟢 עבודה',visibleRows.filter(r=>['עבודה','דווח','נערך ידנית'].includes(r.status)).length],['🟡 חופשה',countType('חופשה')],['🔴 מחלה',countType('מחלה')],['🟣 חג',countType('חג')]].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
  if(isFutureMonth){
    days.innerHTML='<div class="empty">החודש עדיין לא התחיל.</div>';
  }else{
@@ -554,7 +563,7 @@ function renderCalendarMonth(year,month){
    cells+=visibleRows.map(r=>{
      const [dd,mm,yy]=r.date.split('/').map(Number);
      const hasData=r.in!=='—'||r.out!=='—'||r.status==='חופשה';
-     const cls=r.status==='נערך ידנית'?'manual-data':(r.status==='חופשה'?'leave-data':(hasData?'has-data':'missing-data'));
+     const cls=r.status==='נערך ידנית'?'manual-data':(r.status==='חופשה'?'leave-data':(r.status==='מחלה'?'sick-data':(r.status==='חג'?'holiday-data':(r.status==='יום אופציונלי'?'optional-data':(r.status==='מנוחה'?'rest-data':(hasData?'has-data':'missing-data'))))));
      const times=hasData?('<div class="cal-time"><b>'+r.in+'</b> → <b>'+r.out+'</b></div>'):'<div class="cal-time">—</div>';
      const paid=r.paid!=='—'?'<div class="cal-paid">'+r.paid+' ש׳</div>':'';
      return '<div class="cal-day '+cls+'"><div class="cal-date"><span class="cal-num">'+dd+'</span><span class="cal-weekday">'+r.day+'</span></div><div class="cal-status">'+r.status+'</div>'+times+paid+'</div>';
@@ -875,7 +884,8 @@ function updateManualTimeMax(){
  time.max=(date.value===todayIso)?hm():'23:59';
 }
 function loadEditorForDate(){
- if(!date.value){editIn.value='';editOut.value='';return}
+ if(!date.value){editIn.value='';editOut.value='';dayType.value='';return}
+ dayType.value=dayTypes()[date.value]||'';
  const e=edits()[date.value];
  if(e){editIn.value=e.in||'';editOut.value=e.out||'';return}
  const dd=date.value.split('-').reverse().join('/');
@@ -1017,6 +1027,8 @@ document.getElementById('manualInBtn').onclick=()=>{if(!time.value){msg.textCont
 document.getElementById('manualOutBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}if(isFutureDateTime(date.value,time.value)){if(!validatePayrollOpen(date.value,msg))return;setPlannedExit(date.value,time.value);return}setReport('out',time.value)};
 date.addEventListener('change',()=>{updateManualTimeMax();updateClosedPeriodUi();loadEditorForDate()});
 shiftDate.addEventListener('change',()=>{const ps=plannedShifts()[shiftDate.value]||{};shiftStart.value=ps.start||'';shiftEnd.value=ps.end||'';shiftMsg.textContent=''});
+document.getElementById('saveDayTypeBtn').onclick=()=>{if(!date.value){msg.textContent='בחר תאריך.';return}if(!validatePayrollOpen(date.value,msg))return;const all=dayTypes();if(dayType.value)all[date.value]=dayType.value;else delete all[date.value];saveDayTypes(all);msg.textContent=dayType.value?'סוג היום נשמר: '+dayType.value:'סוג היום חזר לברירת המחדל.';renderCalendarMonth(+y.value,m)};
+document.getElementById('clearDayTypeBtn').onclick=()=>{if(!date.value)return;if(!validatePayrollOpen(date.value,msg))return;const all=dayTypes();delete all[date.value];saveDayTypes(all);dayType.value='';msg.textContent='סוג היום נוקה.';renderCalendarMonth(+y.value,m)};
 document.getElementById('saveEditBtn').onclick=async()=>{
  if(!date.value){msg.textContent='בחר תאריך לעריכה.';return}
  if(!validatePayrollOpen(date.value,msg))return
