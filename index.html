@@ -192,7 +192,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v49</div>
+<div class="foot">WorkTime • גרסת מובייל • v50</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -713,7 +713,12 @@ function formatDuration(sec){
  return pad(hh)+':'+pad(mm)+':'+pad(ss);
 }
 function updateTodayCard(){
- const now=new Date(), iso=isoLocal(now), entry=getTodayEntry();
+ const now=new Date(), iso=isoLocal(now), rawEntry=getTodayEntry();
+ const entry={...rawEntry};
+ const entryFuture=entry.in&&isFutureDateTime(iso,entry.in);
+ const exitFuture=entry.out&&isFutureDateTime(iso,entry.out);
+ if(entryFuture){entry.in=null;entry.out=null}
+ else if(exitFuture){entry.out=null}
  todayTitle.textContent='היום • יום '+dayName(now)+' • '+pad(now.getDate())+'/'+pad(now.getMonth()+1);
  todayIn.textContent=entry.in||'—';
  let elapsed=0, active=!!(entry.in&&!entry.out);
@@ -736,7 +741,11 @@ function updateTodayCard(){
  const pay=regularHours*rate+h125*rate*1.25+h150*rate*1.5;
  todayPay.textContent='₪'+pay.toFixed(0);
  const target=9*3600; todayProgressBar.style.width=Math.min(100,(elapsed/target)*100).toFixed(1)+'%';
- if(active){
+ if(entryFuture){
+   todayNote.textContent='קיים דיווח כניסה עתידי ('+rawEntry.in+') — הוא לא ייכלל עד שהשעה תגיע.';
+ }else if(exitFuture){
+   todayNote.textContent='היציאה העתידית ('+rawEntry.out+') אינה נכללת כרגע; הטיימר ממשיך לפי השעה הנוכחית.';
+ }else if(active){
    const end17=new Date(iso+'T17:00:00');
    const minsTo=Math.round((end17-now)/60000);
    todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד 17:00':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
