@@ -89,6 +89,7 @@
 <button id="signOutBtn" class="btn out" style="display:none">התנתק</button>
 </div>
 <div id="authMsg" class="msg">לאחר התחברות הנתונים יסתנכרנו עם Supabase.</div>
+<div id="sessionStatus" class="hint" style="margin-top:6px">בודק התחברות שמורה…</div>
 <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
 <strong>התראות באייפון</strong>
 <div id="pushHelp" class="hint" style="margin-top:5px">בודק תמיכה בהתראות…</div>
@@ -227,7 +228,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v57</div>
+<div class="foot">WorkTime • גרסת מובייל • v58</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -235,7 +236,15 @@
 (()=> {
 const SUPABASE_URL='https://cgtvhrgudjkqnsqyscem.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_ocpQP7OZIV4oXPT3m6QJIw_lG0Dzr5S';
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+ auth:{
+   persistSession:true,
+   autoRefreshToken:true,
+   detectSessionInUrl:true,
+   storage:window.localStorage,
+   storageKey:'worktime-auth-v1'
+ }
+});
 let swRegistration=null;
 async function initPwaNotifications(){
  const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
@@ -420,10 +429,12 @@ async function migrateLocalToDb(){
 }
 async function refreshAuthUi(session){
  currentUser=session?.user||null;
+ const sessionStatus=document.getElementById('sessionStatus');
  if(currentUser){
    authToggle.textContent=currentUser.email||'מחובר';
    signOutBtn.style.display='block';
    syncState.textContent='מחובר';
+   if(sessionStatus)sessionStatus.textContent='✓ ההתחברות נשמרה במכשיר הזה';
    await dbLoadSalarySettings();
    await migrateLocalToDb();
    await dbLoadWorkEntries();
@@ -431,6 +442,7 @@ async function refreshAuthUi(session){
    authToggle.textContent='התחברות';
    signOutBtn.style.display='none';
    syncState.textContent='מקומי';
+   if(sessionStatus)sessionStatus.textContent='לא קיימת התחברות שמורה במכשיר הזה';
  }
 }
 function renderMonths(){
@@ -1023,13 +1035,13 @@ document.getElementById('magicLinkBtn').addEventListener('click',async()=>{
  authMsg.textContent='שולח קישור כניסה חדש…';
  const {error}=await sb.auth.signInWithOtp({
    email,
-   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=39'}
+   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=58'}
  });
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח קישור כניסה חדש למייל. פתח את הקישור האחרון שקיבלת.';
 });
 document.getElementById('signUpBtn').addEventListener('click',async()=>{
  authMsg.textContent='יוצר חשבון…';
- const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/'}});
+ const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=58'}});
  if(error){authMsg.textContent='שגיאה: '+error.message;return}
  authMsg.textContent=data.session?'החשבון נוצר והתחברת.':'החשבון נוצר. בדוק את האימייל לאישור ההרשמה.';
  if(data.session) await refreshAuthUi(data.session);
@@ -1050,8 +1062,14 @@ document.getElementById('resetPasswordBtn').addEventListener('click',async()=>{
 });
 signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';authBox.classList.remove('show');await refreshAuthUi(null)});
 sb.auth.onAuthStateChange((_event,session)=>{refreshAuthUi(session)});
-sb.auth.getSession().then(({data})=>refreshAuthUi(data.session));
-render();
+(async()=>{
+ try{
+   const {data,error}=await sb.auth.getSession();
+   if(error)console.warn('session restore',error);
+   await refreshAuthUi(data?.session||null);
+ }catch(e){console.warn('session restore failed',e)}
+ render();
+})();
 })();
 </script>
 </body>
