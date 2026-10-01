@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="WorkTime">
+<link rel="manifest" href="./manifest.webmanifest?v=56">
 <title>WorkTime</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#102033;--muted:#6b7a90;--line:#e4eaf2;--blue:#2563eb;--violet:#7c3aed;--green:#047857;--red:#b91c1c;--shadow:0 10px 28px rgba(31,53,85,.08)}
@@ -85,6 +89,11 @@
 <button id="signOutBtn" class="btn out" style="display:none">התנתק</button>
 </div>
 <div id="authMsg" class="msg">לאחר התחברות הנתונים יסתנכרנו עם Supabase.</div>
+<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+<strong>התראות באייפון</strong>
+<div id="pushHelp" class="hint" style="margin-top:5px">בודק תמיכה בהתראות…</div>
+<button id="enableNotificationsBtn" type="button" class="btn manual" style="margin-top:8px;width:100%">אפשר התראות</button>
+</div>
 </section>
 
 <section class="hero">
@@ -218,7 +227,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v55</div>
+<div class="foot">WorkTime • גרסת מובייל • v56</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -227,6 +236,17 @@
 const SUPABASE_URL='https://cgtvhrgudjkqnsqyscem.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_ocpQP7OZIV4oXPT3m6QJIw_lG0Dzr5S';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let swRegistration=null;
+async function initPwaNotifications(){
+ const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
+ if(!('serviceWorker' in navigator)){help.textContent='הדפדפן הזה אינו תומך ב-Service Worker.';btn.disabled=true;return}
+ try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=56');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
+ if(!('Notification' in window)){help.textContent='להתראות באייפון: הוסף את WorkTime למסך הבית ופתח אותה משם.';btn.disabled=true;return}
+ if(Notification.permission==='granted'){help.textContent='התראות מאופשרות במכשיר הזה. השלב הבא הוא חיבור Push מהשרת.';btn.textContent='התראות מאופשרות';btn.disabled=true}
+ else if(Notification.permission==='denied'){help.textContent='ההתראות חסומות בהגדרות המכשיר.';btn.disabled=true}
+ else help.textContent='לחץ כדי לאשר התראות. באייפון יש לפתוח את WorkTime ממסך הבית.';
+}
+
 let currentUser=null;
 let dbEntriesByDate={};
 const names=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
@@ -911,6 +931,18 @@ function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
  log.innerHTML=rows.length?rows.map(([d,v])=>`<div class="row"><b dir="ltr">${d.split('-').reverse().join('/')}</b><span>כניסה: <b>${v.in||'—'}</b></span><span>יציאה: <b>${v.out||'—'}</b></span><button data-del="${d}">מחק</button></div>`).join(''):'<div class="hint" style="text-align:center;padding:10px">עדיין אין דיווחים בתקופה הזו.</div>';
 }
+document.getElementById('enableNotificationsBtn').addEventListener('click',async()=>{
+ const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
+ try{
+   const permission=await Notification.requestPermission();
+   if(permission==='granted'){
+     help.textContent='אושר ✓ WorkTime מוכנה לקבלת התראות. כעת נחבר את השליחה מהשרת.';
+     btn.textContent='התראות מאופשרות';btn.disabled=true;
+     if(swRegistration) swRegistration.showNotification('WorkTime',{body:'ההתראות הופעלו בהצלחה.'});
+   }else help.textContent='לא ניתנה הרשאה להתראות.';
+ }catch(e){help.textContent='באייפון יש להוסיף את WorkTime למסך הבית, לפתוח אותה משם ואז לאשר התראות.'}
+});
+initPwaNotifications();
 document.getElementById('saveShiftBtn').addEventListener('click',()=>{
  if(!shiftDate.value||!shiftStart.value||!shiftEnd.value){shiftMsg.textContent='יש להזין תאריך, כניסה ויציאה.';return}
  if(shiftEnd.value<=shiftStart.value){shiftMsg.textContent='שעת היציאה חייבת להיות אחרי שעת הכניסה.';return}
