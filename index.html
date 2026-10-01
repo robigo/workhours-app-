@@ -228,7 +228,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v58</div>
+<div class="foot">WorkTime • גרסת מובייל • v59</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -435,6 +435,15 @@ async function refreshAuthUi(session){
    signOutBtn.style.display='block';
    syncState.textContent='מחובר';
    if(sessionStatus)sessionStatus.textContent='✓ ההתחברות נשמרה במכשיר הזה';
+   try{
+     const {data:cloudShifts,error:shiftLoadError}=await sb.from('planned_shifts').select('shift_date,start_time,end_time').eq('user_id',currentUser.id);
+     if(shiftLoadError)console.warn('planned shifts load',shiftLoadError);
+     else{
+       const all=plannedShifts();
+       for(const s of (cloudShifts||[])) all[s.shift_date]={start:(s.start_time||'').slice(0,5),end:(s.end_time||'').slice(0,5)};
+       savePlannedShifts(all);
+     }
+   }catch(e){console.warn('planned shifts restore',e)}
    await dbLoadSalarySettings();
    await migrateLocalToDb();
    await dbLoadWorkEntries();
@@ -950,7 +959,7 @@ document.getElementById('enableNotificationsBtn').addEventListener('click',async
  try{
    const permission=await Notification.requestPermission();
    if(permission==='granted'){
-     help.textContent='אושר ✓ WorkTime מוכנה לקבלת התראות. כעת נחבר את השליחה מהשרת.';
+     help.textContent='אושר ✓ WorkTime מוכנה להתראות. חיבור ה-Push מהשרת הוא השלב הבא.';
      btn.textContent='התראות מאופשרות';btn.disabled=true;
      if(swRegistration) swRegistration.showNotification('WorkTime',{body:'ההתראות הופעלו בהצלחה.'});
    }else help.textContent='לא ניתנה הרשאה להתראות.';
@@ -961,11 +970,24 @@ document.getElementById('saveShiftBtn').addEventListener('click',()=>{
  if(!shiftDate.value||!shiftStart.value||!shiftEnd.value){shiftMsg.textContent='יש להזין תאריך, כניסה ויציאה.';return}
  if(shiftEnd.value<=shiftStart.value){shiftMsg.textContent='שעת היציאה חייבת להיות אחרי שעת הכניסה.';return}
  const all=plannedShifts();all[shiftDate.value]={start:shiftStart.value,end:shiftEnd.value};savePlannedShifts(all);
+ if(currentUser){
+   sb.from('planned_shifts').upsert({
+     user_id:currentUser.id,
+     shift_date:shiftDate.value,
+     start_time:shiftStart.value,
+     end_time:shiftEnd.value
+   },{onConflict:'user_id,shift_date'}).then(({error})=>{
+     if(error){console.warn('planned shift sync',error);shiftMsg.textContent='נשמר מקומית, אך הסנכרון לענן נכשל.'}
+   });
+ }
  shiftMsg.textContent='המשמרת נשמרה: '+shiftStart.value+' → '+shiftEnd.value;
  checkPlannedShiftAlerts();
 });
 document.getElementById('clearShiftBtn').addEventListener('click',()=>{
- if(!shiftDate.value)return;const all=plannedShifts();delete all[shiftDate.value];savePlannedShifts(all);shiftMsg.textContent='תכנון המשמרת נמחק.';shiftAlert.style.display='none';
+ if(!shiftDate.value)return;
+ const all=plannedShifts();delete all[shiftDate.value];savePlannedShifts(all);
+ if(currentUser)sb.from('planned_shifts').delete().eq('user_id',currentUser.id).eq('shift_date',shiftDate.value).then(({error})=>{if(error)console.warn('planned shift delete',error)});
+ shiftMsg.textContent='תכנון המשמרת נמחק.';shiftAlert.style.display='none';
 });
 confirmShiftBtn.addEventListener('click',confirmPlannedShiftAction);
 dismissShiftBtn.addEventListener('click',()=>{shiftAlert.style.display='none';shiftAlert.dataset.dismissed='1'});
