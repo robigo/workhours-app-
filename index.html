@@ -196,7 +196,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v51</div>
+<div class="foot">WorkTime • גרסת מובייל • v52</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -222,7 +222,11 @@ const salaryNet=document.getElementById('salaryNet'), netBreakdown=document.getE
 const cloudSyncBtn=document.getElementById('cloudSyncBtn'), cloudSyncMsg=document.getElementById('cloudSyncMsg');
 const todayTitle=document.getElementById('todayTitle'),todayStatus=document.getElementById('todayStatus'),todayTimer=document.getElementById('todayTimer'),todayIn=document.getElementById('todayIn'),today125=document.getElementById('today125'),todayPay=document.getElementById('todayPay'),todayProgressBar=document.getElementById('todayProgressBar'),todayNote=document.getElementById('todayNote');
 const authBox=document.getElementById('authBox'), authToggle=document.getElementById('authToggle'), authEmail=document.getElementById('authEmail'), authPassword=document.getElementById('authPassword'), authMsg=document.getElementById('authMsg'), signOutBtn=document.getElementById('signOutBtn'), syncState=document.getElementById('syncState');
-let m=9, manualType='in';
+const initialNow=new Date();
+const savedMonth=Number(localStorage.getItem('worktimeSelectedMonth'));
+const savedYear=Number(localStorage.getItem('worktimeSelectedYear'));
+let m=(savedMonth>=1&&savedMonth<=12)?savedMonth:(initialNow.getMonth()+1), manualType='in';
+if(savedYear>=2025&&savedYear<=2027) y.value=String(savedYear); else y.value=String(initialNow.getFullYear());
 const known={
  '2026-7':{sum:[219.75,150.37,36.14,22.41],days:[
  ['23/07/2026','ה׳','עבודה','07:46','19:00','10.58'],
@@ -859,9 +863,9 @@ salaryTabBtn.addEventListener('click',async()=>{activateMainTab('salary');await 
 document.getElementById('salaryCalcBtn').addEventListener('click',()=>calcSalary(true));
 cloudSyncBtn.addEventListener('click',syncLocalAttendanceToCloud);
 [baseSalary,standardHours,hourlyRate,salaryExtras,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
-months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
-months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;render()},{passive:false});
-y.addEventListener('change',render);
+months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;localStorage.setItem('worktimeSelectedMonth',String(m));localStorage.setItem('worktimeSelectedYear',y.value);render()});
+months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;localStorage.setItem('worktimeSelectedMonth',String(m));localStorage.setItem('worktimeSelectedYear',y.value);render()},{passive:false});
+y.addEventListener('change',()=>{localStorage.setItem('worktimeSelectedYear',y.value);render()});
 document.getElementById('inBtn').onclick=()=>setReport('in',hm());
 document.getElementById('outBtn').onclick=()=>setReport('out',hm());
 document.getElementById('manualInBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('in',time.value)};
