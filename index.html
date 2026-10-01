@@ -227,7 +227,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v56</div>
+<div class="foot">WorkTime • גרסת מובייל • v57</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -271,6 +271,8 @@ const savedMonth=Number(localStorage.getItem('worktimeSelectedMonth'));
 const savedYear=Number(localStorage.getItem('worktimeSelectedYear'));
 let m=(savedMonth>=1&&savedMonth<=12)?savedMonth:(initialNow.getMonth()+1), manualType='in';
 if(savedYear>=2025&&savedYear<=2027) y.value=String(savedYear); else y.value=String(initialNow.getFullYear());
+// Render month selector immediately so optional PWA/auth failures cannot leave it blank.
+queueMicrotask(()=>renderMonths());
 const known={
  '2026-7':{sum:[219.75,150.37,36.14,22.41],days:[
  ['23/07/2026','ה׳','עבודה','07:46','19:00','10.58'],
@@ -942,7 +944,7 @@ document.getElementById('enableNotificationsBtn').addEventListener('click',async
    }else help.textContent='לא ניתנה הרשאה להתראות.';
  }catch(e){help.textContent='באייפון יש להוסיף את WorkTime למסך הבית, לפתוח אותה משם ואז לאשר התראות.'}
 });
-initPwaNotifications();
+initPwaNotifications().catch(e=>{console.warn('PWA init skipped',e);});
 document.getElementById('saveShiftBtn').addEventListener('click',()=>{
  if(!shiftDate.value||!shiftStart.value||!shiftEnd.value){shiftMsg.textContent='יש להזין תאריך, כניסה ויציאה.';return}
  if(shiftEnd.value<=shiftStart.value){shiftMsg.textContent='שעת היציאה חייבת להיות אחרי שעת הכניסה.';return}
