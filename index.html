@@ -104,6 +104,13 @@
 </div>
 
 <div id="reportPane" class="tabpane active">
+<div id="shiftAlert" class="report" style="display:none;border:2px solid #f59e0b;background:#fffbeb">
+<strong id="shiftAlertText"></strong>
+<div class="actions">
+<button id="confirmShiftBtn" class="btn in">אישור</button>
+<button id="dismissShiftBtn" class="btn clearedit">לא עכשיו</button>
+</div>
+</div>
 <section id="todayCard" class="today-card">
 <div class="today-head"><strong id="todayTitle">היום</strong><span id="todayStatus" class="today-status offline">● לא בעבודה</span></div>
 <div id="todayTimer" class="today-timer">00:00:00</div>
@@ -130,6 +137,20 @@
 <button id="manualInBtn" class="btn manual">שמור כניסה ידנית</button><button id="manualOutBtn" class="btn manual">שמור יציאה ידנית</button>
 </div>
 <div id="msg" class="msg">בחר תאריך ואז דווח כניסה או יציאה.</div>
+<div class="editbox">
+<h4>תכנון משמרת</h4>
+<div class="hint">תכנון בלבד — לא נרשמת כניסה או יציאה ללא אישור שלך.</div>
+<div class="editgrid">
+<label>תאריך<input id="shiftDate" type="date"></label>
+<label>כניסה מתוכננת<input id="shiftStart" type="time"></label>
+<label>יציאה מתוכננת<input id="shiftEnd" type="time"></label>
+</div>
+<div class="editactions">
+<button id="saveShiftBtn" class="btn saveedit">שמור משמרת</button>
+<button id="clearShiftBtn" class="btn clearedit">מחק תכנון</button>
+</div>
+<div id="shiftMsg" class="msg"></div>
+</div>
 <div class="editbox">
 <h4>עריכת שעות לפי הדוח</h4>
 <div class="hint">בחר תאריך למעלה, הזן כניסה ויציאה כפי שמופיעות בדוח ושמור.</div>
@@ -196,7 +217,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v53</div>
+<div class="foot">WorkTime • גרסת מובייל • v54</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -212,6 +233,8 @@ const y=document.getElementById('year'), months=document.getElementById('months'
 const summary=document.getElementById('summary'), days=document.getElementById('days');
 const date=document.getElementById('date'), time=document.getElementById('time'), msg=document.getElementById('msg'), log=document.getElementById('log');
 const editIn=document.getElementById('editIn'), editOut=document.getElementById('editOut');
+const shiftDate=document.getElementById('shiftDate'),shiftStart=document.getElementById('shiftStart'),shiftEnd=document.getElementById('shiftEnd'),shiftMsg=document.getElementById('shiftMsg');
+const shiftAlert=document.getElementById('shiftAlert'),shiftAlertText=document.getElementById('shiftAlertText'),confirmShiftBtn=document.getElementById('confirmShiftBtn'),dismissShiftBtn=document.getElementById('dismissShiftBtn');
 const reportPane=document.getElementById('reportPane'), calendarPane=document.getElementById('calendarPane'), salaryPane=document.getElementById('salaryPane');
 const reportTabBtn=document.getElementById('reportTabBtn'), calendarTabBtn=document.getElementById('calendarTabBtn'), salaryTabBtn=document.getElementById('salaryTabBtn');
 const baseSalary=document.getElementById('baseSalary'), standardHours=document.getElementById('standardHours');
@@ -762,7 +785,7 @@ function updateTodayCard(){
    todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד 17:00':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
  }else todayNote.textContent=entry.out?'הדיווח להיום הושלם':'לא בוצעה כניסה היום';
 }
-setInterval(updateTodayCard,1000);setInterval(applyDuePlannedExit,60000);applyDuePlannedExit();
+setInterval(updateTodayCard,1000);setInterval(checkPlannedShiftAlerts,30000);checkPlannedShiftAlerts();
 function render(){
  const year=+y.value;
  renderMonths();
@@ -783,6 +806,9 @@ function setupReporting(){
  updateManualTimeMax();
  updateClosedPeriodUi();
  loadEditorForDate();
+ const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+ if(!shiftDate.value)shiftDate.value=isoLocal(tomorrow);
+ const ps=plannedShifts()[shiftDate.value];if(ps){shiftStart.value=ps.start||'';shiftEnd.value=ps.end||''}
 }
 function updateClosedPeriodUi(){
  const closed=isClosedPayrollDate(date.value);
@@ -823,22 +849,32 @@ function validateNotFuture(dateStr,timeStr,targetMsg=msg){
 }
 function plannedExits(){try{return JSON.parse(localStorage.getItem('worktimePlannedExits')||'{}')}catch{return {}}}
 function savePlannedExits(o){localStorage.setItem('worktimePlannedExits',JSON.stringify(o))}
+function plannedShifts(){try{return JSON.parse(localStorage.getItem('worktimePlannedShifts')||'{}')}catch{return {}}}
+function savePlannedShifts(o){localStorage.setItem('worktimePlannedShifts',JSON.stringify(o))}
 function setPlannedExit(dateStr,timeStr){
  const all=plannedExits();all[dateStr]=timeStr;savePlannedExits(all);
- msg.textContent='יציאה מתוכננת נשמרה ל־'+timeStr+'. היא לא תיכלל בחישוב עד שהשעה תגיע.';
+ msg.textContent='יציאה מתוכננת נשמרה ל־'+timeStr+'. היא לא תירשם בפועל ללא אישור.';
  updateTodayCard();
 }
-async function applyDuePlannedExit(){
- const iso=isoLocal(new Date()), all=plannedExits(), t=all[iso];
- if(!t||isFutureDateTime(iso,t))return;
- delete all[iso];savePlannedExits(all);
- const reports=store();reports[key()]=reports[key()]||{};reports[key()][iso]=reports[key()][iso]||{};
- if(!reports[key()][iso].out){
-   reports[key()][iso].out=t;save(reports);
-   await dbUpsertWorkEntry(iso,reports[key()][iso].in||null,t,'clock','work');
-   renderCalendarMonth(+y.value,m);await loadSalary();
- }
- updateTodayCard();
+let pendingShiftAction=null,lastShiftAlertKey='';
+function checkPlannedShiftAlerts(){
+ const now=new Date(),iso=isoLocal(now),shift=plannedShifts()[iso],entry=getTodayEntry();
+ if(!shift)return;
+ const nowMin=now.getHours()*60+now.getMinutes();
+ const startMin=mins(shift.start),endMin=mins(shift.end);
+ let action=null,text='';
+ if(!entry.in && shift.start && nowMin>=startMin){action='in';text='המשמרת המתוכננת התחילה ב־'+shift.start+' — לדווח כניסה עכשיו?'}
+ else if(entry.in&&!entry.out&&shift.end&&nowMin>=endMin){action='out';text='המשמרת המתוכננת הסתיימה ב־'+shift.end+' — לדווח יציאה עכשיו?'}
+ if(!action){shiftAlert.style.display='none';pendingShiftAction=null;return}
+ const key=iso+'-'+action+'-'+(action==='in'?shift.start:shift.end);
+ if(lastShiftAlertKey===key&&shiftAlert.dataset.dismissed==='1')return;
+ pendingShiftAction=action;lastShiftAlertKey=key;shiftAlertText.textContent=text;shiftAlert.style.display='block';shiftAlert.dataset.dismissed='0';
+}
+async function confirmPlannedShiftAction(){
+ if(!pendingShiftAction)return;
+ shiftAlert.style.display='none';
+ await setReport(pendingShiftAction,hm());
+ pendingShiftAction=null;
 }
 function payrollCloseForDate(dateStr){
  if(!dateStr)return null;
@@ -874,6 +910,18 @@ function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
  log.innerHTML=rows.length?rows.map(([d,v])=>`<div class="row"><b dir="ltr">${d.split('-').reverse().join('/')}</b><span>כניסה: <b>${v.in||'—'}</b></span><span>יציאה: <b>${v.out||'—'}</b></span><button data-del="${d}">מחק</button></div>`).join(''):'<div class="hint" style="text-align:center;padding:10px">עדיין אין דיווחים בתקופה הזו.</div>';
 }
+document.getElementById('saveShiftBtn').addEventListener('click',()=>{
+ if(!shiftDate.value||!shiftStart.value||!shiftEnd.value){shiftMsg.textContent='יש להזין תאריך, כניסה ויציאה.';return}
+ if(shiftEnd.value<=shiftStart.value){shiftMsg.textContent='שעת היציאה חייבת להיות אחרי שעת הכניסה.';return}
+ const all=plannedShifts();all[shiftDate.value]={start:shiftStart.value,end:shiftEnd.value};savePlannedShifts(all);
+ shiftMsg.textContent='המשמרת נשמרה: '+shiftStart.value+' → '+shiftEnd.value;
+ checkPlannedShiftAlerts();
+});
+document.getElementById('clearShiftBtn').addEventListener('click',()=>{
+ if(!shiftDate.value)return;const all=plannedShifts();delete all[shiftDate.value];savePlannedShifts(all);shiftMsg.textContent='תכנון המשמרת נמחק.';shiftAlert.style.display='none';
+});
+confirmShiftBtn.addEventListener('click',confirmPlannedShiftAction);
+dismissShiftBtn.addEventListener('click',()=>{shiftAlert.style.display='none';shiftAlert.dataset.dismissed='1'});
 function activateMainTab(which){
  const map={report:[reportTabBtn,reportPane],calendar:[calendarTabBtn,calendarPane],salary:[salaryTabBtn,salaryPane]};
  Object.values(map).forEach(([btn,pane])=>{btn.classList.remove('active');pane.classList.remove('active')});
@@ -893,6 +941,7 @@ document.getElementById('outBtn').onclick=()=>setReport('out',hm());
 document.getElementById('manualInBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('in',time.value)};
 document.getElementById('manualOutBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}if(isFutureDateTime(date.value,time.value)){if(!validatePayrollOpen(date.value,msg))return;setPlannedExit(date.value,time.value);return}setReport('out',time.value)};
 date.addEventListener('change',()=>{updateManualTimeMax();updateClosedPeriodUi();loadEditorForDate()});
+shiftDate.addEventListener('change',()=>{const ps=plannedShifts()[shiftDate.value]||{};shiftStart.value=ps.start||'';shiftEnd.value=ps.end||'';shiftMsg.textContent=''});
 document.getElementById('saveEditBtn').onclick=async()=>{
  if(!date.value){msg.textContent='בחר תאריך לעריכה.';return}
  if(!validatePayrollOpen(date.value,msg))return
