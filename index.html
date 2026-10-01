@@ -43,8 +43,8 @@
  .logo{width:40px;height:40px;border-radius:12px}.top h1{font-size:20px}.top p{display:none}
  .syncpill{padding:5px 7px}.authbtn{padding:7px 9px;font-size:12px}
  .hero{padding:13px;border-radius:18px}.hero h2{font-size:19px}.hero>p{display:none}
- .picker{margin-top:8px;padding:9px}.months{display:flex;overflow-x:auto;gap:7px;padding-bottom:3px;scrollbar-width:none}.months::-webkit-scrollbar{display:none}
- .month{min-width:68px;min-height:48px;flex:0 0 auto}.period{margin-top:7px;padding:8px 10px}
+ .picker{margin-top:8px;padding:9px}.months{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding-bottom:0}
+ .month{min-width:0;min-height:48px}.period{margin-top:7px;padding:8px 10px}
  .tabs{top:54px;margin:8px 0;padding:4px}.tabbtn{padding:10px}
  .grid{grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.card{padding:9px;border-radius:13px;box-shadow:none}.value{font-size:17px}.label{font-size:10px}
  .report,.salarybox{margin-top:8px;padding:12px;border-radius:16px;box-shadow:none}
@@ -97,12 +97,13 @@
 </div>
 </section>
 
-<div class="tabs">
-<button id="attendanceTabBtn" class="tabbtn active">נוכחות</button>
-<button id="salaryTabBtn" class="tabbtn">שכר משוער</button>
+<div class="tabs" style="grid-template-columns:repeat(3,1fr)">
+<button id="reportTabBtn" class="tabbtn active">דיווח</button>
+<button id="calendarTabBtn" class="tabbtn">יומן</button>
+<button id="salaryTabBtn" class="tabbtn">שכר</button>
 </div>
 
-<div id="attendancePane" class="tabpane active">
+<div id="reportPane" class="tabpane active">
 <section id="todayCard" class="today-card">
 <div class="today-head"><strong id="todayTitle">היום</strong><span id="todayStatus" class="today-status offline">● לא בעבודה</span></div>
 <div id="todayTimer" class="today-timer">00:00:00</div>
@@ -145,6 +146,9 @@
 <div id="attendanceLogWrap" class="advanced-panel"><div id="log" class="log"></div></div>
 </section>
 
+</div>
+
+<div id="calendarPane" class="tabpane">
 <section class="section">
 <h3>יומן החודש</h3>
 <div id="days"></div>
@@ -192,7 +196,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v50</div>
+<div class="foot">WorkTime • גרסת מובייל • v51</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -208,8 +212,8 @@ const y=document.getElementById('year'), months=document.getElementById('months'
 const summary=document.getElementById('summary'), days=document.getElementById('days');
 const date=document.getElementById('date'), time=document.getElementById('time'), msg=document.getElementById('msg'), log=document.getElementById('log');
 const editIn=document.getElementById('editIn'), editOut=document.getElementById('editOut');
-const attendancePane=document.getElementById('attendancePane'), salaryPane=document.getElementById('salaryPane');
-const attendanceTabBtn=document.getElementById('attendanceTabBtn'), salaryTabBtn=document.getElementById('salaryTabBtn');
+const reportPane=document.getElementById('reportPane'), calendarPane=document.getElementById('calendarPane'), salaryPane=document.getElementById('salaryPane');
+const reportTabBtn=document.getElementById('reportTabBtn'), calendarTabBtn=document.getElementById('calendarTabBtn'), salaryTabBtn=document.getElementById('salaryTabBtn');
 const baseSalary=document.getElementById('baseSalary'), standardHours=document.getElementById('standardHours');
 const hourlyRate=document.getElementById('hourlyRate'), salaryExtras=document.getElementById('salaryExtras');
 const salaryRegular=document.getElementById('salaryRegular'), salary125=document.getElementById('salary125'), salary150=document.getElementById('salary150'), salaryPaidExtraHours=document.getElementById('salaryPaidExtraHours');
@@ -844,8 +848,14 @@ function renderLog(){
  const rows=Object.entries(store()[key()]||{}).sort((a,b)=>b[0].localeCompare(a[0]));
  log.innerHTML=rows.length?rows.map(([d,v])=>`<div class="row"><b dir="ltr">${d.split('-').reverse().join('/')}</b><span>כניסה: <b>${v.in||'—'}</b></span><span>יציאה: <b>${v.out||'—'}</b></span><button data-del="${d}">מחק</button></div>`).join(''):'<div class="hint" style="text-align:center;padding:10px">עדיין אין דיווחים בתקופה הזו.</div>';
 }
-attendanceTabBtn.addEventListener('click',()=>{attendanceTabBtn.classList.add('active');salaryTabBtn.classList.remove('active');attendancePane.classList.add('active');salaryPane.classList.remove('active')});
-salaryTabBtn.addEventListener('click',async()=>{salaryTabBtn.classList.add('active');attendanceTabBtn.classList.remove('active');salaryPane.classList.add('active');attendancePane.classList.remove('active');await loadSalary()});
+function activateMainTab(which){
+ const map={report:[reportTabBtn,reportPane],calendar:[calendarTabBtn,calendarPane],salary:[salaryTabBtn,salaryPane]};
+ Object.values(map).forEach(([btn,pane])=>{btn.classList.remove('active');pane.classList.remove('active')});
+ map[which][0].classList.add('active');map[which][1].classList.add('active');
+}
+reportTabBtn.addEventListener('click',()=>activateMainTab('report'));
+calendarTabBtn.addEventListener('click',()=>activateMainTab('calendar'));
+salaryTabBtn.addEventListener('click',async()=>{activateMainTab('salary');await loadSalary()});
 document.getElementById('salaryCalcBtn').addEventListener('click',()=>calcSalary(true));
 cloudSyncBtn.addEventListener('click',syncLocalAttendanceToCloud);
 [baseSalary,standardHours,hourlyRate,salaryExtras,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
