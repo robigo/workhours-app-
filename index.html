@@ -196,7 +196,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v52</div>
+<div class="foot">WorkTime • גרסת מובייל • v53</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -723,6 +723,7 @@ function formatDuration(sec){
 function updateTodayCard(){
  const now=new Date(), iso=isoLocal(now), rawEntry=getTodayEntry();
  const entry={...rawEntry};
+ const plannedExit=plannedExits()[iso]||'';
  const entryFuture=entry.in&&isFutureDateTime(iso,entry.in);
  const exitFuture=entry.out&&isFutureDateTime(iso,entry.out);
  if(entryFuture){entry.in=null;entry.out=null}
@@ -753,13 +754,15 @@ function updateTodayCard(){
    todayNote.textContent='קיים דיווח כניסה עתידי ('+rawEntry.in+') — הוא לא ייכלל עד שהשעה תגיע.';
  }else if(exitFuture){
    todayNote.textContent='היציאה העתידית ('+rawEntry.out+') אינה נכללת כרגע; הטיימר ממשיך לפי השעה הנוכחית.';
+ }else if(active&&plannedExit){
+   todayNote.textContent='יציאה מתוכננת: '+plannedExit+' • החישוב כרגע עד השעה הנוכחית';
  }else if(active){
    const end17=new Date(iso+'T17:00:00');
    const minsTo=Math.round((end17-now)/60000);
    todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד 17:00':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
  }else todayNote.textContent=entry.out?'הדיווח להיום הושלם':'לא בוצעה כניסה היום';
 }
-setInterval(updateTodayCard,1000);
+setInterval(updateTodayCard,1000);setInterval(applyDuePlannedExit,60000);applyDuePlannedExit();
 function render(){
  const year=+y.value;
  renderMonths();
@@ -818,6 +821,25 @@ function validateNotFuture(dateStr,timeStr,targetMsg=msg){
  }
  return true;
 }
+function plannedExits(){try{return JSON.parse(localStorage.getItem('worktimePlannedExits')||'{}')}catch{return {}}}
+function savePlannedExits(o){localStorage.setItem('worktimePlannedExits',JSON.stringify(o))}
+function setPlannedExit(dateStr,timeStr){
+ const all=plannedExits();all[dateStr]=timeStr;savePlannedExits(all);
+ msg.textContent='יציאה מתוכננת נשמרה ל־'+timeStr+'. היא לא תיכלל בחישוב עד שהשעה תגיע.';
+ updateTodayCard();
+}
+async function applyDuePlannedExit(){
+ const iso=isoLocal(new Date()), all=plannedExits(), t=all[iso];
+ if(!t||isFutureDateTime(iso,t))return;
+ delete all[iso];savePlannedExits(all);
+ const reports=store();reports[key()]=reports[key()]||{};reports[key()][iso]=reports[key()][iso]||{};
+ if(!reports[key()][iso].out){
+   reports[key()][iso].out=t;save(reports);
+   await dbUpsertWorkEntry(iso,reports[key()][iso].in||null,t,'clock','work');
+   renderCalendarMonth(+y.value,m);await loadSalary();
+ }
+ updateTodayCard();
+}
 function payrollCloseForDate(dateStr){
  if(!dateStr)return null;
  const [yy,mm,dd]=dateStr.split('-').map(Number);
@@ -869,7 +891,7 @@ y.addEventListener('change',()=>{localStorage.setItem('worktimeSelectedYear',y.v
 document.getElementById('inBtn').onclick=()=>setReport('in',hm());
 document.getElementById('outBtn').onclick=()=>setReport('out',hm());
 document.getElementById('manualInBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('in',time.value)};
-document.getElementById('manualOutBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('out',time.value)};
+document.getElementById('manualOutBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}if(isFutureDateTime(date.value,time.value)){if(!validatePayrollOpen(date.value,msg))return;setPlannedExit(date.value,time.value);return}setReport('out',time.value)};
 date.addEventListener('change',()=>{updateManualTimeMax();updateClosedPeriodUi();loadEditorForDate()});
 document.getElementById('saveEditBtn').onclick=async()=>{
  if(!date.value){msg.textContent='בחר תאריך לעריכה.';return}
