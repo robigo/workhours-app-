@@ -53,8 +53,9 @@
  .report .actions{gap:7px}
  .report .btn{min-height:46px}
  .editbox{margin-top:12px;padding-top:12px}
+ #shiftPlannerBox{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px}
  .report .controls{grid-template-columns:1fr 1fr}.report .actions{grid-template-columns:1fr 1fr}.report .actions .manual{display:block}
- .editbox,#log{display:none}
+ #log{display:none}
  .section{margin-top:10px}.section h3{font-size:16px}
  .day{padding:10px;border-radius:13px}.hours{grid-template-columns:repeat(4,1fr);gap:5px}
  .month-calendar{padding:7px;border-radius:15px}.calendar-head,.calendar-grid{gap:4px}.calendar-head div{font-size:10px;padding:3px 0}.cal-day{min-height:78px;padding:5px;border-radius:10px}.cal-num{font-size:15px}.cal-weekday{display:none}.cal-status{font-size:8px}.cal-time{font-size:8px;margin-top:4px}.cal-time b{font-size:9px}.cal-paid{font-size:8px}.chip{padding:7px 5px;text-align:center}
@@ -137,8 +138,8 @@
 <button id="manualInBtn" class="btn manual">שמור כניסה ידנית</button><button id="manualOutBtn" class="btn manual">שמור יציאה ידנית</button>
 </div>
 <div id="msg" class="msg">בחר תאריך ואז דווח כניסה או יציאה.</div>
-<div class="editbox">
-<h4>תכנון משמרת</h4>
+<div class="editbox" id="shiftPlannerBox">
+<h4>📅 תכנון משמרת</h4>
 <div class="hint">תכנון בלבד — לא נרשמת כניסה או יציאה ללא אישור שלך.</div>
 <div class="editgrid">
 <label>תאריך<input id="shiftDate" type="date"></label>
@@ -217,7 +218,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v54</div>
+<div class="foot">WorkTime • גרסת מובייל • v55</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
