@@ -245,7 +245,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v64</div>
+<div class="foot">WorkTime • גרסת מובייל • v65</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1146,13 +1146,13 @@ document.getElementById('magicLinkBtn').addEventListener('click',async()=>{
  authMsg.textContent='שולח קישור כניסה חדש…';
  const {error}=await sb.auth.signInWithOtp({
    email,
-   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=60'}
+   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=65&handoff=1'}
  });
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח קישור כניסה חדש למייל. פתח את הקישור האחרון שקיבלת.';
 });
 document.getElementById('signUpBtn').addEventListener('click',async()=>{
  authMsg.textContent='יוצר חשבון…';
- const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=60'}});
+ const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=65&handoff=1'}});
  if(error){authMsg.textContent='שגיאה: '+error.message;return}
  authMsg.textContent=data.session?'החשבון נוצר והתחברת.':'החשבון נוצר. בדוק את האימייל לאישור ההרשמה.';
  if(data.session) await refreshAuthUi(data.session);
@@ -1172,12 +1172,51 @@ document.getElementById('resetPasswordBtn').addEventListener('click',async()=>{
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
 });
 signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';authBox.classList.remove('show');await refreshAuthUi(null)});
-sb.auth.onAuthStateChange((_event,session)=>{refreshAuthUi(session)});
+
+async function offerPwaHandoff(session){
+ try{
+   const params=new URLSearchParams(location.search);
+   if(params.get('handoff')!=='1'||!session)return;
+   const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+   if(isStandalone)return;
+   const access=session.access_token,refresh=session.refresh_token;
+   if(!access||!refresh)return;
+   const payload=btoa(unescape(encodeURIComponent(JSON.stringify({access_token:access,refresh_token:refresh}))));
+   const target='https://robigo.github.io/workhours-app-/?v=65#handoff='+encodeURIComponent(payload);
+   authMsg.innerHTML='התחברת ב-Safari. כדי להעביר את ההתחברות לאפליקציה במסך הבית, פתח את WorkTime מהאייקון והשתמש בקישור הבא:<br><a href="'+target+'">פתח ב-WorkTime</a>';
+   try{await navigator.clipboard.writeText(target)}catch{}
+ }catch(e){console.warn('handoff offer failed',e)}
+}
+
+async function acceptPwaHandoff(){
+ try{
+   const hash=location.hash||'';
+   if(!hash.startsWith('#handoff='))return false;
+   const raw=decodeURIComponent(hash.slice('#handoff='.length));
+   const json=JSON.parse(decodeURIComponent(escape(atob(raw))));
+   if(!json.access_token||!json.refresh_token)throw new Error('handoff payload incomplete');
+   const {data,error}=await sb.auth.setSession({access_token:json.access_token,refresh_token:json.refresh_token});
+   if(error)throw error;
+   history.replaceState(null,'',location.pathname+'?v=65');
+   authMsg.textContent='✓ ההתחברות הועברה לאפליקציה במסך הבית.';
+   await refreshAuthUi(data.session);
+   return true;
+ }catch(e){
+   console.warn('handoff accept failed',e);
+   authMsg.textContent='לא ניתן היה להעביר את ההתחברות. נסה שוב דרך Safari.';
+   return false;
+ }
+}
+sb.auth.onAuthStateChange(async(_event,session)=>{await refreshAuthUi(session);await offerPwaHandoff(session)});
 (async()=>{
  try{
-   const {data,error}=await sb.auth.getSession();
-   if(error)console.warn('session restore',error);
-   await refreshAuthUi(data?.session||null);
+   const accepted=await acceptPwaHandoff();
+   if(!accepted){
+     const {data,error}=await sb.auth.getSession();
+     if(error)console.warn('session restore',error);
+     await refreshAuthUi(data?.session||null);
+     await offerPwaHandoff(data?.session||null);
+   }
  }catch(e){console.warn('session restore failed',e)}
  render();
 })();
