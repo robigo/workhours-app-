@@ -58,7 +58,14 @@
  .report .btn{min-height:46px}
  .editbox{margin-top:12px;padding-top:12px}
  #shiftPlannerBox{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px}
- .report .controls{grid-template-columns:1fr 1fr}.report .actions{grid-template-columns:1fr 1fr}.report .actions .manual{display:block}
+ .report .controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .report .actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .report .actions .manual{display:block}
+ .editgrid,.editactions{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .controls>*,.actions>*,.editgrid>*,.editactions>*{min-width:0;max-width:100%}
+ .controls input,.editgrid input,.editbox select,.btn{min-width:0;max-width:100%}
+ .btn{white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+ .report,.editbox{max-width:100%;overflow:hidden}
  #log{display:none}
  .section{margin-top:10px}.section h3{font-size:16px}
  .day{padding:10px;border-radius:13px}.hours{grid-template-columns:repeat(4,1fr);gap:5px}
@@ -68,6 +75,12 @@
  .salaryresult{padding:12px}.salaryresult .big{font-size:25px}
  #salaryDaysDetail{margin-top:8px}
  .salary-day{padding:9px}
+}
+@media(max-width:430px){
+ .editgrid,.editactions{grid-template-columns:1fr}
+ .editactions .btn{width:100%}
+ .report .controls{grid-template-columns:1fr 1fr}
+ .report .actions{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -232,7 +245,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v61</div>
+<div class="foot">WorkTime • גרסת מובייל • v62</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
