@@ -245,7 +245,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v63</div>
+<div class="foot">WorkTime • גרסת מובייל • v64</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -307,20 +307,22 @@ async function initPwaNotifications(){
  try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=63');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
  if(!('Notification' in window)){help.textContent='להתראות באייפון: הוסף את WorkTime למסך הבית ופתח אותה משם.';btn.disabled=true;return}
  if(Notification.permission==='granted'){
+   btn.disabled=false;
+   btn.textContent='רשום מכשיר ל-Push';
    if(currentUser){
      ensurePushSubscription().then(()=>{
        help.textContent='✓ המכשיר רשום לקבלת Push.';
-       btn.textContent='התראות מאופשרות';btn.disabled=true;
+       btn.textContent='התראות מאופשרות';
      }).catch(e=>{
        console.warn('push register',e);
-       help.textContent='הרשאת ההתראות קיימת, אך רישום המכשיר לשרת עדיין לא הושלם.';
+       help.textContent='הרשאת ההתראות קיימת. לחץ שוב כדי להשלים רישום Push.';
      });
    }else{
-     help.textContent='ההתראות מאופשרות. התחבר לחשבון כדי להשלים את רישום המכשיר.';
+     help.textContent='ההתראות מאופשרות. התחבר לחשבון ואז לחץ כאן להשלמת Push.';
    }
  }
  else if(Notification.permission==='denied'){help.textContent='ההתראות חסומות בהגדרות המכשיר.';btn.disabled=true}
- else help.textContent='לחץ כדי לאשר התראות. באייפון יש לפתוח את WorkTime ממסך הבית.';
+ else {help.textContent='לחץ כדי לאשר התראות. באייפון יש לפתוח את WorkTime ממסך הבית.';btn.disabled=false}
 }
 
 let currentUser=null;
@@ -508,7 +510,7 @@ async function refreshAuthUi(session){
      ensurePushSubscription().then(()=>{
        const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
        if(help)help.textContent='✓ המכשיר רשום לקבלת Push.';
-       if(btn){btn.textContent='התראות מאופשרות';btn.disabled=true}
+       if(btn){btn.textContent='התראות מאופשרות';btn.disabled=false}
      }).catch(e=>console.warn('push sync after login',e));
    }
    try{
@@ -1042,7 +1044,7 @@ document.getElementById('enableNotificationsBtn').addEventListener('click',async
    if(permission==='granted'){
      await ensurePushSubscription();
      help.textContent='✓ Push הופעל והמכשיר נרשם לשרת.';
-     btn.textContent='התראות מאופשרות';btn.disabled=true;
+     btn.textContent='התראות מאופשרות';btn.disabled=false;
      if(swRegistration) swRegistration.showNotification('WorkTime',{body:'בדיקת התראות הצליחה. המכשיר רשום לקבלת Push.'});
    }else help.textContent='לא ניתנה הרשאה להתראות.';
  }catch(e){
