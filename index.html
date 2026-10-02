@@ -245,7 +245,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v62</div>
+<div class="foot">WorkTime • גרסת מובייל • v63</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -269,12 +269,56 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
  }
 });
 let swRegistration=null;
+const VAPID_PUBLIC_KEY='BJpRaODDel6_AN3Czt2pyDr1tGApLHbkxlpaviHaNhqDUiB-wGRDww0vlbclzqRGK5sas4Pus2iPu4cU_SVcfb8';
+function urlBase64ToUint8Array(base64String){
+ const padding='='.repeat((4-base64String.length%4)%4);
+ const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+ const rawData=atob(base64);
+ const outputArray=new Uint8Array(rawData.length);
+ for(let i=0;i<rawData.length;i++)outputArray[i]=rawData.charCodeAt(i);
+ return outputArray;
+}
+async function ensurePushSubscription(){
+ if(!currentUser)throw new Error('צריך להתחבר לחשבון לפני רישום Push.');
+ if(!swRegistration)swRegistration=await navigator.serviceWorker.ready;
+ let sub=await swRegistration.pushManager.getSubscription();
+ if(!sub){
+   sub=await swRegistration.pushManager.subscribe({
+     userVisibleOnly:true,
+     applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+   });
+ }
+ const json=sub.toJSON();
+ const payload={
+   user_id:currentUser.id,
+   endpoint:sub.endpoint,
+   p256dh:json.keys?.p256dh||'',
+   auth:json.keys?.auth||'',
+   user_agent:navigator.userAgent,
+   updated_at:new Date().toISOString()
+ };
+ const {error}=await sb.from('push_subscriptions').upsert(payload,{onConflict:'user_id,endpoint'});
+ if(error)throw error;
+ return sub;
+}
 async function initPwaNotifications(){
  const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
  if(!('serviceWorker' in navigator)){help.textContent='הדפדפן הזה אינו תומך ב-Service Worker.';btn.disabled=true;return}
- try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=56');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
+ try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=63');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
  if(!('Notification' in window)){help.textContent='להתראות באייפון: הוסף את WorkTime למסך הבית ופתח אותה משם.';btn.disabled=true;return}
- if(Notification.permission==='granted'){help.textContent='התראות מאופשרות במכשיר הזה. השלב הבא הוא חיבור Push מהשרת.';btn.textContent='התראות מאופשרות';btn.disabled=true}
+ if(Notification.permission==='granted'){
+   if(currentUser){
+     ensurePushSubscription().then(()=>{
+       help.textContent='✓ המכשיר רשום לקבלת Push.';
+       btn.textContent='התראות מאופשרות';btn.disabled=true;
+     }).catch(e=>{
+       console.warn('push register',e);
+       help.textContent='הרשאת ההתראות קיימת, אך רישום המכשיר לשרת עדיין לא הושלם.';
+     });
+   }else{
+     help.textContent='ההתראות מאופשרות. התחבר לחשבון כדי להשלים את רישום המכשיר.';
+   }
+ }
  else if(Notification.permission==='denied'){help.textContent='ההתראות חסומות בהגדרות המכשיר.';btn.disabled=true}
  else help.textContent='לחץ כדי לאשר התראות. באייפון יש לפתוח את WorkTime ממסך הבית.';
 }
@@ -460,6 +504,13 @@ async function refreshAuthUi(session){
    signOutBtn.style.display='block';
    syncState.textContent='מחובר';
    if(sessionStatus)sessionStatus.textContent='✓ ההתחברות נשמרה במכשיר הזה';
+   if('Notification' in window && Notification.permission==='granted'){
+     ensurePushSubscription().then(()=>{
+       const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
+       if(help)help.textContent='✓ המכשיר רשום לקבלת Push.';
+       if(btn){btn.textContent='התראות מאופשרות';btn.disabled=true}
+     }).catch(e=>console.warn('push sync after login',e));
+   }
    try{
      const {data:cloudShifts,error:shiftLoadError}=await sb.from('planned_shifts').select('shift_date,start_time,end_time').eq('user_id',currentUser.id);
      if(shiftLoadError)console.warn('planned shifts load',shiftLoadError);
@@ -986,13 +1037,18 @@ function renderLog(){
 document.getElementById('enableNotificationsBtn').addEventListener('click',async()=>{
  const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
  try{
+   if(!currentUser){help.textContent='יש להתחבר לחשבון לפני הפעלת Push.';return}
    const permission=await Notification.requestPermission();
    if(permission==='granted'){
-     help.textContent='אושר ✓ WorkTime מוכנה להתראות. חיבור ה-Push מהשרת הוא השלב הבא.';
+     await ensurePushSubscription();
+     help.textContent='✓ Push הופעל והמכשיר נרשם לשרת.';
      btn.textContent='התראות מאופשרות';btn.disabled=true;
-     if(swRegistration) swRegistration.showNotification('WorkTime',{body:'ההתראות הופעלו בהצלחה.'});
+     if(swRegistration) swRegistration.showNotification('WorkTime',{body:'בדיקת התראות הצליחה. המכשיר רשום לקבלת Push.'});
    }else help.textContent='לא ניתנה הרשאה להתראות.';
- }catch(e){help.textContent='באייפון יש להוסיף את WorkTime למסך הבית, לפתוח אותה משם ואז לאשר התראות.'}
+ }catch(e){
+   console.error(e);
+   help.textContent='לא ניתן להשלים רישום Push. באייפון יש לפתוח את WorkTime מהאייקון במסך הבית.';
+ }
 });
 initPwaNotifications().catch(e=>{console.warn('PWA init skipped',e);});
 document.getElementById('saveShiftBtn').addEventListener('click',()=>{
