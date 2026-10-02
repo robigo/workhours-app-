@@ -102,6 +102,15 @@
 <button id="signOutBtn" class="btn out" style="display:none">התנתק</button>
 </div>
 <div id="authMsg" class="msg">לאחר התחברות הנתונים יסתנכרנו עם Supabase.</div>
+<div id="recoveryBox" class="editbox" style="display:none">
+<h4>הגדרת סיסמה חדשה</h4>
+<div class="editgrid">
+<label>סיסמה חדשה<input id="newPassword" type="password" minlength="6" autocomplete="new-password"></label>
+<label>אימות סיסמה<input id="confirmNewPassword" type="password" minlength="6" autocomplete="new-password"></label>
+</div>
+<button id="saveNewPasswordBtn" type="button" class="btn in" style="margin-top:9px;width:100%">שמור סיסמה חדשה</button>
+<div id="recoveryMsg" class="msg"></div>
+</div>
 <div id="sessionStatus" class="hint" style="margin-top:6px">בודק התחברות שמורה…</div>
 <div id="transferPanel" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
 <strong>העברת התחברות למכשיר אחר</strong>
@@ -257,7 +266,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v69</div>
+<div class="foot">WorkTime • גרסת מובייל • v70</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1197,6 +1206,28 @@ document.getElementById('settingsToggle')?.addEventListener('click',()=>authBox.
 document.getElementById('createTransferBtn')?.addEventListener('click',createTransferCode);
 document.getElementById('claimTransferBtn')?.addEventListener('click',claimTransferCode);
 // authToggle handled inline as a browser-safe fallback.
+
+const recoveryBox=document.getElementById('recoveryBox');
+const recoveryMsg=document.getElementById('recoveryMsg');
+const newPassword=document.getElementById('newPassword');
+const confirmNewPassword=document.getElementById('confirmNewPassword');
+function setRecoveryMode(on){
+ if(!recoveryBox)return;
+ recoveryBox.style.display=on?'block':'none';
+ if(on){authBox.classList.add('show');authMsg.textContent='הקישור אומת. הגדר עכשיו סיסמה חדשה לחשבון.'}
+}
+document.getElementById('saveNewPasswordBtn')?.addEventListener('click',async()=>{
+ const p1=newPassword.value||'',p2=confirmNewPassword.value||'';
+ if(p1.length<6){recoveryMsg.textContent='הסיסמה חייבת להכיל לפחות 6 תווים.';return}
+ if(p1!==p2){recoveryMsg.textContent='הסיסמאות אינן תואמות.';return}
+ recoveryMsg.textContent='שומר סיסמה חדשה…';
+ const result=await sb.auth.updateUser({password:p1});
+ if(result.error){recoveryMsg.textContent='שגיאה: '+result.error.message;return}
+ recoveryMsg.textContent='✓ הסיסמה עודכנה בהצלחה.';
+ newPassword.value='';confirmNewPassword.value='';
+ authMsg.textContent='✓ הסיסמה עודכנה. אפשר להיכנס מעכשיו עם אימייל וסיסמה.';
+ setRecoveryMode(false);
+});
 document.getElementById('signInBtn').addEventListener('click',async()=>{
  authMsg.textContent='מתחבר…';
  const {data,error}=await sb.auth.signInWithPassword({email:authEmail.value.trim(),password:authPassword.value});
@@ -1236,17 +1267,19 @@ document.getElementById('resetPasswordBtn').addEventListener('click',async()=>{
 });
 signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';authBox.classList.remove('show');await refreshAuthUi(null)});
 
-sb.auth.onAuthStateChange(async(_event,session)=>{await refreshAuthUi(session)});
+sb.auth.onAuthStateChange(async(event,session)=>{await refreshAuthUi(session);if(event==='PASSWORD_RECOVERY')setRecoveryMode(true)});
 (async()=>{
  try{
    const callbackSession=await handleSupabaseAuthCallback();
    if(callbackSession){
      await refreshAuthUi(callbackSession);
-     authMsg.textContent='✓ התחברת בהצלחה. ההתחברות נשמרה במכשיר הזה.';
+     if(new URLSearchParams(location.search).get('reset')==='1')setRecoveryMode(true);
+     else authMsg.textContent='✓ התחברת בהצלחה. ההתחברות נשמרה במכשיר הזה.';
    }else{
      const {data,error}=await sb.auth.getSession();
      if(error)console.warn('session restore',error);
      await refreshAuthUi(data?.session||null);
+     if(data?.session && new URLSearchParams(location.search).get('reset')==='1')setRecoveryMode(true);
    }
  }catch(e){
    console.warn('auth startup failed',e);
