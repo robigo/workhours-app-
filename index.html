@@ -266,7 +266,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v71</div>
+<div class="foot">WorkTime • גרסת מובייל • v72</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -296,7 +296,7 @@ async function handleSupabaseAuthCallback(){
    const result=await sb.auth.exchangeCodeForSession(code);
    if(result.error)throw result.error;
    url.searchParams.delete('code');
-   url.searchParams.set('v','68');
+   url.searchParams.set('v','72');
    url.searchParams.delete('handoff');
    history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
    return result.data?.session||null;
@@ -1262,7 +1262,7 @@ document.getElementById('resetPasswordBtn').addEventListener('click',async()=>{
  const email=authEmail.value.trim();
  if(!email){authMsg.textContent='הזן אימייל תחילה.';return}
  authMsg.textContent='שולח קישור לאיפוס סיסמה…';
- const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=71&reset=1'});
+ const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=72&reset=1'});
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
 });
 signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';authBox.classList.remove('show');await refreshAuthUi(null)});
@@ -1270,6 +1270,8 @@ signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.te
 sb.auth.onAuthStateChange(async(event,session)=>{await refreshAuthUi(session);if(event==='PASSWORD_RECOVERY')setRecoveryMode(true)});
 (async()=>{
  try{
+   const resetMode=new URLSearchParams(location.search).get('reset')==='1';
+   if(resetMode)setRecoveryMode(true);
    const callbackSession=await handleSupabaseAuthCallback();
    if(callbackSession){
      await refreshAuthUi(callbackSession);
@@ -1279,7 +1281,10 @@ sb.auth.onAuthStateChange(async(event,session)=>{await refreshAuthUi(session);if
      const {data,error}=await sb.auth.getSession();
      if(error)console.warn('session restore',error);
      await refreshAuthUi(data?.session||null);
-     if(data?.session && new URLSearchParams(location.search).get('reset')==='1')setRecoveryMode(true);
+     if(resetMode){
+       setRecoveryMode(true);
+       if(!data?.session)recoveryMsg.textContent='קישור האיפוס לא יצר התחברות תקפה. השתמש בקישור האיפוס האחרון בלבד.';
+     }
    }
  }catch(e){
    console.warn('auth startup failed',e);
