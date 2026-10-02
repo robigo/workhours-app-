@@ -103,6 +103,18 @@
 </div>
 <div id="authMsg" class="msg">לאחר התחברות הנתונים יסתנכרנו עם Supabase.</div>
 <div id="sessionStatus" class="hint" style="margin-top:6px">בודק התחברות שמורה…</div>
+<div id="transferPanel" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+<strong>העברת התחברות למכשיר אחר</strong>
+<div id="transferHelp" class="hint" style="margin-top:5px">במחשב המחובר צור קוד זמני, ובאייפון הזן אותו כאן.</div>
+<div class="actions" style="margin-top:8px">
+<button id="createTransferBtn" type="button" class="btn manual">צור קוד העברה</button>
+</div>
+<div id="transferCodeBox" class="msg" style="font-size:22px;font-weight:900;letter-spacing:3px;direction:ltr"></div>
+<div class="controls" style="margin-top:8px">
+<label>קוד העברה<input id="transferCodeInput" inputmode="numeric" maxlength="6" placeholder="123456"></label>
+</div>
+<button id="claimTransferBtn" type="button" class="btn in" style="margin-top:8px;width:100%">התחבר עם הקוד</button>
+</div>
 <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
 <strong>התראות באייפון</strong>
 <div id="pushHelp" class="hint" style="margin-top:5px">בודק תמיכה בהתראות…</div>
@@ -245,7 +257,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v66</div>
+<div class="foot">WorkTime • גרסת מובייל • v67</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -281,6 +293,41 @@ async function handleSupabaseAuthCallback(){
    return result.data?.session||null;
  }
  return null;
+}
+const TRANSFER_FN=SUPABASE_URL+'/functions/v1/worktime-auth-transfer';
+async function callTransferFunction(action,payload){
+ const {data:{session}}=await sb.auth.getSession();
+ const headers={'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY};
+ if(session?.access_token)headers.Authorization='Bearer '+session.access_token;
+ const res=await fetch(TRANSFER_FN,{method:'POST',headers,body:JSON.stringify({action,...payload})});
+ const json=await res.json().catch(()=>({}));
+ if(!res.ok||json.ok===false)throw new Error(json.error||json.message||('HTTP '+res.status));
+ return json;
+}
+async function createTransferCode(){
+ const box=document.getElementById('transferCodeBox'),help=document.getElementById('transferHelp');
+ if(!currentUser){help.textContent='צריך להיות מחובר במכשיר שממנו מעבירים את ההתחברות.';return}
+ try{
+   help.textContent='יוצר קוד חד-פעמי…';
+   const json=await callTransferFunction('create',{});
+   box.textContent=json.code||'';
+   help.textContent='הקוד תקף לכמה דקות בלבד. הזן אותו באייפון.';
+ }catch(e){help.textContent='יצירת הקוד נכשלה: '+(e?.message||e)}
+}
+async function claimTransferCode(){
+ const input=document.getElementById('transferCodeInput'),help=document.getElementById('transferHelp');
+ const code=(input.value||'').trim();
+ if(!/^\d{6}$/.test(code)){help.textContent='הזן קוד בן 6 ספרות.';return}
+ try{
+   help.textContent='מאמת קוד…';
+   const json=await callTransferFunction('claim',{code});
+   if(!json.access_token||!json.refresh_token)throw new Error('לא התקבל session');
+   const {data,error}=await sb.auth.setSession({access_token:json.access_token,refresh_token:json.refresh_token});
+   if(error)throw error;
+   await refreshAuthUi(data.session);
+   help.textContent='✓ ההתחברות הועברה למכשיר הזה.';
+   input.value='';
+ }catch(e){help.textContent='העברת ההתחברות נכשלה: '+(e?.message||e)}
 }
 let swRegistration=null;
 const VAPID_PUBLIC_KEY='BJpRaODDel6_AN3Czt2pyDr1tGApLHbkxlpaviHaNhqDUiB-wGRDww0vlbclzqRGK5sas4Pus2iPu4cU_SVcfb8';
@@ -1147,6 +1194,8 @@ togglePanel('attendanceLogToggle','attendanceLogWrap','הסתר היסטוריי
 togglePanel('salaryAdvancedToggle','salaryAdvanced','סגור הגדרות שכר ▴','הגדרות שכר וכללי חישוב ▾');
 togglePanel('salaryDetailsToggle','salaryDetailsWrap','הסתר פירוט ימים ▴','הצג פירוט ימים ▾');
 document.getElementById('settingsToggle')?.addEventListener('click',()=>authBox.classList.toggle('show'));
+document.getElementById('createTransferBtn')?.addEventListener('click',createTransferCode);
+document.getElementById('claimTransferBtn')?.addEventListener('click',claimTransferCode);
 // authToggle handled inline as a browser-safe fallback.
 document.getElementById('signInBtn').addEventListener('click',async()=>{
  authMsg.textContent='מתחבר…';
