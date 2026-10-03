@@ -266,7 +266,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v72</div>
+<div class="foot">WorkTime • גרסת מובייל • v73</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -296,7 +296,7 @@ async function handleSupabaseAuthCallback(){
    const result=await sb.auth.exchangeCodeForSession(code);
    if(result.error)throw result.error;
    url.searchParams.delete('code');
-   url.searchParams.set('v','72');
+   url.searchParams.set('v','73');
    url.searchParams.delete('handoff');
    history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
    return result.data?.session||null;
@@ -583,23 +583,30 @@ async function refreshAuthUi(session){
        if(btn){btn.textContent='התראות מאופשרות';btn.disabled=false}
      }).catch(e=>console.warn('push sync after login',e));
    }
-   try{
-     const {data:cloudShifts,error:shiftLoadError}=await sb.from('planned_shifts').select('shift_date,start_time,end_time').eq('user_id',currentUser.id);
-     if(shiftLoadError)console.warn('planned shifts load',shiftLoadError);
-     else{
-       const all=plannedShifts();
-       for(const s of (cloudShifts||[])) all[s.shift_date]={start:(s.start_time||'').slice(0,5),end:(s.end_time||'').slice(0,5)};
-       savePlannedShifts(all);
-     }
-   }catch(e){console.warn('planned shifts restore',e)}
-   await dbLoadSalarySettings();
-   await migrateLocalToDb();
-   await dbLoadWorkEntries();
+   void syncCloudAfterAuth(currentUser.id);
  }else{
    authToggle.textContent='התחברות';
    signOutBtn.style.display='none';
    syncState.textContent='מקומי';
    if(sessionStatus)sessionStatus.textContent='לא קיימת התחברות שמורה במכשיר הזה';
+ }
+}
+async function syncCloudAfterAuth(userId){
+ try{
+   const {data:cloudShifts,error:shiftLoadError}=await sb.from('planned_shifts').select('shift_date,start_time,end_time').eq('user_id',userId);
+   if(shiftLoadError)console.warn('planned shifts load',shiftLoadError);
+   else{
+     const all=plannedShifts();
+     for(const s of (cloudShifts||[])) all[s.shift_date]={start:(s.start_time||'').slice(0,5),end:(s.end_time||'').slice(0,5)};
+     savePlannedShifts(all);
+   }
+   await dbLoadSalarySettings();
+   await migrateLocalToDb();
+   await dbLoadWorkEntries();
+   render();
+ }catch(e){
+   console.warn('background cloud sync failed',e);
+   if(syncState)syncState.textContent='מחובר • סנכרון ממתין';
  }
 }
 function renderMonths(){
@@ -1262,7 +1269,7 @@ document.getElementById('resetPasswordBtn').addEventListener('click',async()=>{
  const email=authEmail.value.trim();
  if(!email){authMsg.textContent='הזן אימייל תחילה.';return}
  authMsg.textContent='שולח קישור לאיפוס סיסמה…';
- const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=72&reset=1'});
+ const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=73&reset=1'});
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
 });
 signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';authBox.classList.remove('show');await refreshAuthUi(null)});
