@@ -98,7 +98,7 @@
 <button id="magicLinkBtn" class="btn manual">שלח לי קישור כניסה</button>
 <button id="signUpBtn" class="btn manual">הרשמה</button>
 <button id="resendBtn" class="btn manual">שלח מחדש אימות</button>
-<button id="resetPasswordBtn" class="btn manual">איפוס סיסמה</button>
+<button id="resetPasswordBtn" type="button" class="btn manual" onclick="window.worktimeResetPassword&&window.worktimeResetPassword();return false;">איפוס סיסמה</button>
 <button id="signOutBtn" class="btn out" style="display:none">התנתק</button>
 </div>
 <div id="authMsg" class="msg">לאחר התחברות הנתונים יסתנכרנו עם Supabase.</div>
@@ -266,7 +266,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v73</div>
+<div class="foot">WorkTime • גרסת מובייל • v74</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -289,6 +289,19 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
    storage:window.localStorage
  }
 });
+window.worktimeResetPassword=async function(){
+ const emailEl=document.getElementById('authEmail');
+ const msgEl=document.getElementById('authMsg');
+ const email=(emailEl?.value||'').trim();
+ if(!email){if(msgEl)msgEl.textContent='הזן אימייל תחילה.';return}
+ if(msgEl)msgEl.textContent='שולח קישור לאיפוס סיסמה…';
+ try{
+   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=74&reset=1'});
+   if(msgEl)msgEl.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
+ }catch(e){
+   if(msgEl)msgEl.textContent='שגיאה בשליחת איפוס: '+(e?.message||e);
+ }
+};
 async function handleSupabaseAuthCallback(){
  const url=new URL(window.location.href);
  const code=url.searchParams.get('code');
@@ -296,7 +309,7 @@ async function handleSupabaseAuthCallback(){
    const result=await sb.auth.exchangeCodeForSession(code);
    if(result.error)throw result.error;
    url.searchParams.delete('code');
-   url.searchParams.set('v','73');
+   url.searchParams.set('v','74');
    url.searchParams.delete('handoff');
    history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
    return result.data?.session||null;
@@ -1265,13 +1278,7 @@ document.getElementById('resendBtn').addEventListener('click',async()=>{
  const {error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/'}});
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח מייל אימות חדש. השתמש בקישור החדש בלבד.';
 });
-document.getElementById('resetPasswordBtn').addEventListener('click',async()=>{
- const email=authEmail.value.trim();
- if(!email){authMsg.textContent='הזן אימייל תחילה.';return}
- authMsg.textContent='שולח קישור לאיפוס סיסמה…';
- const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=73&reset=1'});
- authMsg.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
-});
+
 signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';authBox.classList.remove('show');await refreshAuthUi(null)});
 
 sb.auth.onAuthStateChange(async(event,session)=>{await refreshAuthUi(session);if(event==='PASSWORD_RECOVERY')setRecoveryMode(true)});
