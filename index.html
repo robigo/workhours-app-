@@ -266,7 +266,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v76</div>
+<div class="foot">WorkTime • גרסת מובייל • v77</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -285,7 +285,7 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
  auth:{
    persistSession:true,
    autoRefreshToken:true,
-   detectSessionInUrl:false,
+   detectSessionInUrl:true,
    storage:window.localStorage
  }
 });
@@ -296,7 +296,7 @@ window.worktimeResetPassword=async function(){
  if(!email){if(msgEl)msgEl.textContent='הזן אימייל תחילה.';return}
  if(msgEl)msgEl.textContent='שולח קישור לאיפוס סיסמה…';
  try{
-   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=76&reset=1'});
+   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=77&reset=1'});
    if(msgEl)msgEl.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
  }catch(e){
    if(msgEl)msgEl.textContent='שגיאה בשליחת איפוס: '+(e?.message||e);
@@ -312,7 +312,7 @@ async function handleSupabaseAuthCallback(){
      if(s.error)throw s.error;
      const clean=new URL(window.location.href);
      clean.hash='';
-     clean.searchParams.set('v','76');
+     clean.searchParams.set('v','77');
      clean.searchParams.set('reset','1');
      history.replaceState(null,'',clean.pathname+'?'+clean.searchParams.toString());
      return s.data?.session||null;
@@ -330,7 +330,7 @@ async function handleSupabaseAuthCallback(){
  if(accessToken&&refreshToken){
    const result=await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
    if(result.error)throw result.error;
-   url.searchParams.set('v','76');
+   url.searchParams.set('v','77');
    url.searchParams.delete('handoff');
    url.hash='';
    history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
@@ -341,7 +341,7 @@ async function handleSupabaseAuthCallback(){
    const result=await sb.auth.exchangeCodeForSession(code);
    if(result.error)throw result.error;
    url.searchParams.delete('code');
-   url.searchParams.set('v','76');
+   url.searchParams.set('v','77');
    url.searchParams.delete('handoff');
    history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
    return result.data?.session||null;
