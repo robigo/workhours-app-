@@ -266,7 +266,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v74</div>
+<div class="foot">WorkTime • גרסת מובייל • v75</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -296,7 +296,7 @@ window.worktimeResetPassword=async function(){
  if(!email){if(msgEl)msgEl.textContent='הזן אימייל תחילה.';return}
  if(msgEl)msgEl.textContent='שולח קישור לאיפוס סיסמה…';
  try{
-   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=74&reset=1'});
+   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=75&reset=1'});
    if(msgEl)msgEl.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
  }catch(e){
    if(msgEl)msgEl.textContent='שגיאה בשליחת איפוס: '+(e?.message||e);
@@ -305,11 +305,28 @@ window.worktimeResetPassword=async function(){
 async function handleSupabaseAuthCallback(){
  const url=new URL(window.location.href);
  const code=url.searchParams.get('code');
+ const hashParams=new URLSearchParams((url.hash||'').replace(/^#/,''));
+ const accessToken=hashParams.get('access_token');
+ const refreshToken=hashParams.get('refresh_token');
+ const hashError=hashParams.get('error_description')||hashParams.get('error');
+
+ if(hashError)throw new Error(hashError);
+
+ if(accessToken&&refreshToken){
+   const result=await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
+   if(result.error)throw result.error;
+   url.searchParams.set('v','75');
+   url.searchParams.delete('handoff');
+   url.hash='';
+   history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
+   return result.data?.session||null;
+ }
+
  if(code){
    const result=await sb.auth.exchangeCodeForSession(code);
    if(result.error)throw result.error;
    url.searchParams.delete('code');
-   url.searchParams.set('v','74');
+   url.searchParams.set('v','75');
    url.searchParams.delete('handoff');
    history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
    return result.data?.session||null;
