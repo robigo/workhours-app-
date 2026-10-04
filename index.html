@@ -12,7 +12,7 @@
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#102033;--muted:#6b7a90;--line:#e4eaf2;--blue:#2563eb;--violet:#7c3aed;--green:#047857;--red:#b91c1c;--shadow:0 10px 28px rgba(31,53,85,.08)}
 *{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:linear-gradient(180deg,#edf4ff,#f8fafc 340px);color:var(--text)}
-.app{width:100%;max-width:980px;margin:auto;padding:10px}.authbar{display:flex;gap:8px;align-items:center;margin-inline-start:auto}.authbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;font:inherit;font-weight:800}.authstate{font-size:11px;color:var(--muted)}.authbox{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin:10px 0}.authbox.show{display:block}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.authgrid input{border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}.syncpill{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#3730a3;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800}.top{display:flex;gap:12px;align-items:center;margin:8px 0 12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-weight:900}.top h1{margin:0;font-size:23px}.top p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.app{width:100%;max-width:980px;margin:auto;padding:10px}.authbar{display:flex;gap:8px;align-items:center;margin-inline-start:auto}.authbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;font:inherit;font-weight:800}.authstate{font-size:11px;color:var(--muted)}.authbox{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin:10px 0}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.authgrid input{min-width:0;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}.syncpill{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#3730a3;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800}.top{display:flex;gap:12px;align-items:center;margin:8px 0 12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-weight:900}.top h1{margin:0;font-size:23px}.top p{margin:3px 0 0;color:var(--muted);font-size:13px}
 .hero{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:22px;padding:16px;box-shadow:var(--shadow)}.hero h2{margin:0 0 5px;font-size:22px}.hero p{margin:0;color:#dbeafe;font-size:13px;line-height:1.5}.picker{margin-top:14px;padding:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:15px}.pickhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.year{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:8px;font:inherit;font-weight:800}.year option{color:#111}.months{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:10px}.month{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;border-radius:11px;padding:9px 4px;font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.month b{display:block;font-size:15px}.month small{display:block;color:#dbeafe;font-size:10px;margin-top:2px}.month.active{background:#fff;color:#0f172a}.month.active small{color:#64748b}.period{margin-top:10px;padding:10px 12px;border-radius:11px;background:rgba(255,255,255,.1);font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:var(--shadow)}.label{font-size:11px;color:var(--muted)}.value{font-size:22px;font-weight:900;margin-top:5px}.sub{font-size:11px;color:var(--muted);margin-top:4px}
 .report{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);margin-top:12px}.report h3{margin:0 0 4px}.hint{color:var(--muted);font-size:12px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.controls label{font-size:12px;color:var(--muted);display:grid;gap:5px}.controls input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}.editbox{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.editbox h4{margin:0 0 8px}.editgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.editgrid label{font-size:12px;color:var(--muted);display:grid;gap:5px}.editgrid input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}.editactions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}.saveedit{background:#ede9fe;color:#5b21b6}.clearedit{background:#f3f4f6;color:#4b5563}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.btn{border:0;border-radius:12px;padding:12px;font:inherit;font-weight:900}.btn:disabled{opacity:.45;filter:grayscale(.35);cursor:not-allowed}.in{background:#dcfce7;color:#166534}.out{background:#fee2e2;color:#991b1b}.manual{background:#dbeafe;color:#1d4ed8;grid-column:1/-1}.msg{margin-top:9px;font-size:12px;color:var(--muted)}.log{display:grid;gap:8px;margin-top:12px}.row{display:grid;grid-template-columns:1.2fr .8fr .8fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:12px}.row button{border:0;background:#f8fafc;border-radius:8px;padding:6px 8px}
@@ -26,7 +26,7 @@
 .ot-badge.p125{background:#ffedd5;color:#9a3412}
 .ot-badge.p150{background:#fce7f3;color:#9d174d}
 @media(max-width:650px){.salary-day{grid-template-columns:1fr 1fr}.salary-day .ot-summary{grid-column:1/-1}}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;position:sticky;top:6px;z-index:50;padding:6px;background:rgba(244,247,251,.94);backdrop-filter:blur(8px);border-radius:15px}.tabbtn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;font:inherit;font-weight:900;color:var(--muted)}.tabbtn.active{background:#0f172a;color:#fff}.tabpane{display:none}.tabpane.active{display:block}.salarybox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);margin-top:12px}.salarygrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}.salarygrid label{font-size:12px;color:var(--muted);display:grid;gap:5px}.salarygrid input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}.salaryresult{margin-top:12px;background:#0f172a;color:#fff;border-radius:16px;padding:14px}.salaryresult .big{font-size:28px;font-weight:900;margin-top:5px}.calcrows{display:grid;gap:7px;margin-top:10px}.calcrow{display:flex;justify-content:space-between;gap:10px;font-size:13px}.section{margin-top:12px}.section h3{margin:0 0 9px}.empty{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;color:var(--muted);box-shadow:var(--shadow)}.daily{display:grid;gap:8px}.day{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;position:sticky;top:6px;z-index:50;padding:6px;background:rgba(244,247,251,.94);backdrop-filter:blur(8px);border-radius:15px}.tabbtn{min-width:0;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;font:inherit;font-weight:900;color:var(--muted)}.tabbtn.active{background:#0f172a;color:#fff}.tabpane{display:none}.tabpane.active{display:block}.salarybox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);margin-top:12px}.salarygrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}.salarygrid label{font-size:12px;color:var(--muted);display:grid;gap:5px}.salarygrid input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}.salaryresult{margin-top:12px;background:#0f172a;color:#fff;border-radius:16px;padding:14px}.salaryresult .big{font-size:28px;font-weight:900;margin-top:5px}.calcrows{display:grid;gap:7px;margin-top:10px}.calcrow{display:flex;justify-content:space-between;gap:10px;font-size:13px}.section{margin-top:12px}.section h3{margin:0 0 9px}.empty{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;color:var(--muted);box-shadow:var(--shadow)}.daily{display:grid;gap:8px}.day{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px}
 .month-calendar{background:#fff;border:1px solid var(--line);border-radius:18px;padding:10px;box-shadow:var(--shadow)}
 .calendar-head,.calendar-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 .calendar-head{margin-bottom:6px}.calendar-head div{text-align:center;font-size:11px;font-weight:900;color:var(--muted);padding:5px 0}
@@ -86,8 +86,28 @@
 </head>
 <body>
 <main class="app">
-<div class="top"><div class="logo">WT</div><div><h1>WorkTime</h1><p>נוכחות ושעות נוספות</p></div><div class="authbar"><span id="syncState" class="syncpill">מקומי</span><button id="settingsToggle" type="button" class="settings-toggle">⚙️</button><button id="authToggle" type="button" class="authbtn" onclick="document.getElementById('authBox').classList.toggle('show');return false;">התחברות</button></div></div>
-<section id="authBox" class="authbox">
+<div class="top"><div class="logo">WT</div><div><h1>WorkTime</h1><p>נוכחות ושעות נוספות</p></div><div class="authbar"><span id="syncState" class="syncpill">מקומי</span><button id="settingsToggle" type="button" class="settings-toggle">⚙️</button><button id="authToggle" type="button" class="authbtn" onclick="window.worktimeOpenAccount&&window.worktimeOpenAccount();return false;">התחברות</button></div></div>
+
+
+<section id="periodHero" class="hero">
+<h2>דוח נוכחות</h2>
+<p>בחירת חודש מציגה את ימי אותו חודש. נתוני השכר עדיין משויכים למחזור 23→22.</p>
+<div class="picker">
+<div class="pickhead"><strong>בחר חודש</strong>
+<select id="year" class="year"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
+<div id="months" class="months"></div>
+<div id="period" class="period"></div>
+</div>
+</section>
+
+<div class="tabs" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+<button id="reportTabBtn" class="tabbtn active">דיווח</button>
+<button id="calendarTabBtn" class="tabbtn">יומן</button>
+<button id="salaryTabBtn" class="tabbtn">שכר</button>
+<button id="accountTabBtn" class="tabbtn">חשבון</button>
+</div>
+
+<section id="authBox" class="authbox tabpane">
 <h3 style="margin-top:0">חיבור לחשבון WorkTime</h3>
 <div class="authgrid">
 <input id="authEmail" type="email" placeholder="אימייל">
@@ -130,23 +150,6 @@
 <button id="enableNotificationsBtn" type="button" class="btn manual" style="margin-top:8px;width:100%">אפשר התראות</button>
 </div>
 </section>
-
-<section class="hero">
-<h2>דוח נוכחות</h2>
-<p>בחירת חודש מציגה את ימי אותו חודש. נתוני השכר עדיין משויכים למחזור 23→22.</p>
-<div class="picker">
-<div class="pickhead"><strong>בחר חודש</strong>
-<select id="year" class="year"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
-<div id="months" class="months"></div>
-<div id="period" class="period"></div>
-</div>
-</section>
-
-<div class="tabs" style="grid-template-columns:repeat(3,1fr)">
-<button id="reportTabBtn" class="tabbtn active">דיווח</button>
-<button id="calendarTabBtn" class="tabbtn">יומן</button>
-<button id="salaryTabBtn" class="tabbtn">שכר</button>
-</div>
 
 <div id="reportPane" class="tabpane active">
 <div id="shiftAlert" class="report" style="display:none;border:2px solid #f59e0b;background:#fffbeb">
@@ -464,7 +467,7 @@ const authBox=document.getElementById('authBox'), authToggle=document.getElement
  const prefillEmail=qp.get('email');
  if(prefillEmail)authEmail.value=prefillEmail;
  if(qp.get('reset-request')==='1'){
-   authBox.classList.add('show');
+   activateMainTab('account');
    authMsg.textContent='המייל מוכן. לחץ פעם אחת בלבד על איפוס סיסמה.';
    setTimeout(()=>document.getElementById('resetPasswordBtn')?.scrollIntoView({block:'center'}),0);
  }
@@ -1211,10 +1214,13 @@ document.getElementById('clearShiftBtn').addEventListener('click',()=>{
 confirmShiftBtn.addEventListener('click',confirmPlannedShiftAction);
 dismissShiftBtn.addEventListener('click',()=>{shiftAlert.style.display='none';shiftAlert.dataset.dismissed='1'});
 function activateMainTab(which){
- const map={report:[reportTabBtn,reportPane],calendar:[calendarTabBtn,calendarPane],salary:[salaryTabBtn,salaryPane]};
+ const map={report:[reportTabBtn,reportPane],calendar:[calendarTabBtn,calendarPane],salary:[salaryTabBtn,salaryPane],account:[document.getElementById('accountTabBtn'),authBox]};
  Object.values(map).forEach(([btn,pane])=>{btn.classList.remove('active');pane.classList.remove('active')});
  map[which][0].classList.add('active');map[which][1].classList.add('active');
+ document.getElementById('periodHero').hidden=which==='account';
 }
+window.worktimeOpenAccount=()=>activateMainTab('account');
+document.getElementById('accountTabBtn').addEventListener('click',window.worktimeOpenAccount);
 reportTabBtn.addEventListener('click',()=>activateMainTab('report'));
 calendarTabBtn.addEventListener('click',()=>activateMainTab('calendar'));
 salaryTabBtn.addEventListener('click',async()=>{activateMainTab('salary');await loadSalary()});
@@ -1264,10 +1270,10 @@ const togglePanel=(btnId,panelId,openText,closedText)=>{
 togglePanel('attendanceLogToggle','attendanceLogWrap','הסתר היסטוריית דיווחים ▴','הצג היסטוריית דיווחים ▾');
 togglePanel('salaryAdvancedToggle','salaryAdvanced','סגור הגדרות שכר ▴','הגדרות שכר וכללי חישוב ▾');
 togglePanel('salaryDetailsToggle','salaryDetailsWrap','הסתר פירוט ימים ▴','הצג פירוט ימים ▾');
-document.getElementById('settingsToggle')?.addEventListener('click',()=>authBox.classList.toggle('show'));
+document.getElementById('settingsToggle')?.addEventListener('click',()=>activateMainTab('account'));
 document.getElementById('createTransferBtn')?.addEventListener('click',createTransferCode);
 document.getElementById('claimTransferBtn')?.addEventListener('click',claimTransferCode);
-// authToggle handled inline as a browser-safe fallback.
+// The header account button opens the same dedicated account tab.
 
 const recoveryBox=document.getElementById('recoveryBox');
 const recoveryMsg=document.getElementById('recoveryMsg');
@@ -1276,7 +1282,7 @@ const confirmNewPassword=document.getElementById('confirmNewPassword');
 function setRecoveryMode(on){
  if(!recoveryBox)return;
  recoveryBox.style.display=on?'block':'none';
- if(on){authBox.classList.add('show');authMsg.textContent='הקישור אומת. הגדר עכשיו סיסמה חדשה לחשבון.'}
+ if(on){activateMainTab('account');authMsg.textContent='הקישור אומת. הגדר עכשיו סיסמה חדשה לחשבון.'}
 }
 document.getElementById('saveNewPasswordBtn')?.addEventListener('click',async()=>{
  const p1=newPassword.value||'',p2=confirmNewPassword.value||'';
@@ -1294,7 +1300,7 @@ document.getElementById('signInBtn').addEventListener('click',async()=>{
  authMsg.textContent='מתחבר…';
  const {data,error}=await sb.auth.signInWithPassword({email:authEmail.value.trim(),password:authPassword.value});
  if(error){authMsg.textContent='שגיאה: '+error.message;return}
- authMsg.textContent='התחברת בהצלחה'; authBox.classList.remove('show'); await refreshAuthUi(data.session);
+ authMsg.textContent='התחברת בהצלחה'; activateMainTab('report'); await refreshAuthUi(data.session);
 });
 document.getElementById('magicLinkBtn').addEventListener('click',async()=>{
  const email=authEmail.value.trim();
@@ -1321,7 +1327,7 @@ document.getElementById('resendBtn').addEventListener('click',async()=>{
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח מייל אימות חדש. השתמש בקישור החדש בלבד.';
 });
 
-signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';authBox.classList.remove('show');await refreshAuthUi(null)});
+signOutBtn.addEventListener('click',async()=>{await sb.auth.signOut();authMsg.textContent='התנתקת';activateMainTab('account');await refreshAuthUi(null)});
 
 sb.auth.onAuthStateChange(async(event,session)=>{await refreshAuthUi(session);if(event==='PASSWORD_RECOVERY')setRecoveryMode(true)});
 (async()=>{
