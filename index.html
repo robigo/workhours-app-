@@ -32,6 +32,7 @@
 .calendar-head{margin-bottom:6px}.calendar-head div{text-align:center;font-size:11px;font-weight:900;color:var(--muted);padding:5px 0}
 .cal-empty{min-height:78px}.cal-day{min-height:92px;border:1px solid var(--line);border-radius:13px;padding:8px;background:#f8fafc;overflow:hidden}
 .cal-day.has-data{background:#f0fdf4;border-color:#bbf7d0}.cal-day.manual-data{background:#eef2ff;border-color:#c7d2fe}.cal-day.leave-data{background:#fff7ed;border-color:#fed7aa}.cal-day.sick-data{background:#fef2f2;border-color:#fecaca}.cal-day.holiday-data{background:#faf5ff;border-color:#e9d5ff}.cal-day.optional-data{background:#eff6ff;border-color:#bfdbfe}.cal-day.rest-data{background:#f8fafc;border-color:#e2e8f0}.cal-day.missing-data{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+.cal-rates{font-size:10px;line-height:1.5;margin-top:5px;text-align:center;color:#334155;font-weight:800}
 .cal-date{display:flex;justify-content:space-between;align-items:center;gap:4px}.cal-num{font-size:17px;font-weight:900}.cal-weekday{font-size:10px;color:var(--muted);font-weight:800}
 .cal-status{font-size:9px;font-weight:900;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-time{font-size:10px;margin-top:6px;line-height:1.45;direction:ltr;text-align:center}.cal-time b{font-size:11px}.cal-paid{font-size:10px;margin-top:4px;text-align:center;color:#334155;font-weight:800}.daytop{display:flex;justify-content:space-between;gap:8px}.badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800}.ok{background:#ecfdf5;color:#047857}.off{background:#f3f4f6;color:#6b7280}.hours{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.chip{background:#f8fafc;border-radius:9px;padding:8px;font-size:11px}.chip b{display:block;margin-top:3px}.foot{text-align:center;color:var(--muted);font-size:11px;margin:18px 0}
 @media(max-width:680px){.app{padding:8px}.months{grid-template-columns:repeat(3,1fr)}.month{min-height:54px}.grid{grid-template-columns:repeat(2,1fr)}.controls,.actions{grid-template-columns:1fr}.manual{grid-column:auto}.row{grid-template-columns:1fr 1fr}.row button{grid-column:1/-1;width:100%}.hours{grid-template-columns:1fr 1fr}.hero{border-radius:18px}}
@@ -69,7 +70,7 @@
  #log{display:none}
  .section{margin-top:10px}.section h3{font-size:16px}
  .day{padding:10px;border-radius:13px}.hours{grid-template-columns:repeat(4,1fr);gap:5px}
- .month-calendar{padding:7px;border-radius:15px}.calendar-head,.calendar-grid{gap:4px}.calendar-head div{font-size:10px;padding:3px 0}.cal-day{min-height:78px;padding:5px;border-radius:10px}.cal-num{font-size:15px}.cal-weekday{display:none}.cal-status{font-size:8px}.cal-time{font-size:8px;margin-top:4px}.cal-time b{font-size:9px}.cal-paid{font-size:8px}.chip{padding:7px 5px;text-align:center}
+ .month-calendar{padding:7px;border-radius:15px}.calendar-head,.calendar-grid{gap:4px}.calendar-head div{font-size:10px;padding:3px 0}.cal-day{min-height:78px;padding:5px;border-radius:10px}.cal-num{font-size:15px}.cal-weekday{display:none}.cal-status{font-size:8px}.cal-time{font-size:8px;margin-top:4px}.cal-time b{font-size:9px}.cal-paid{font-size:8px}.cal-rates{font-size:8px}.chip{padding:7px 5px;text-align:center}
  .salarygrid{grid-template-columns:repeat(3,1fr);gap:7px}.salarygrid label{font-size:10px}.salarygrid input{padding:9px;text-align:center}
  #baseSalary,#hourlyRate,#standardHours,#salaryExtras,#salaryPaidExtraHours{background:#f8fafc}
  .salaryresult{padding:12px}.salaryresult .big{font-size:25px}
@@ -269,7 +270,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v85</div>
+<div class="foot">WorkTime • גרסת מובייל • v86</div>
 </main>
 
 <script>
@@ -820,7 +821,14 @@ function renderCalendarMonth(year,month){
      const cls=r.status==='נערך ידנית'?'manual-data':(r.status==='חופשה'?'leave-data':(r.status==='מחלה'?'sick-data':(r.status==='חג'?'holiday-data':(r.status==='יום אופציונלי'?'optional-data':(r.status==='מנוחה'?'rest-data':(hasData?'has-data':'missing-data'))))));
      const times=hasData?('<div class="cal-time"><b>'+r.in+'</b> → <b>'+r.out+'</b></div>'):'<div class="cal-time">—</div>';
      const paid=r.paid!=='—'?'<div class="cal-paid">'+r.paid+' ש׳</div>':'';
-     return '<div class="cal-day '+cls+'"><div class="cal-date"><span class="cal-num">'+dd+'</span><span class="cal-weekday">'+r.day+'</span></div><div class="cal-status">'+r.status+'</div>'+times+paid+'</div>';
+     let payRates='';
+     if(r.in && r.out && r.in!=='—' && r.out!=='—'){
+       const split=splitPayHoursForDay(new Date(yy,mm-1,dd,12),{in:r.in,out:r.out});
+       payRates='<div class="cal-rates">'+[['100%',split.regular],['125%',split.h125],['150%',split.h150]]
+         .filter(([,hours])=>hours>0)
+         .map(([rate,hours])=>'<div>'+rate+' · '+hours.toFixed(2)+' ש׳</div>').join('')+'</div>';
+     }
+     return '<div class="cal-day '+cls+'"><div class="cal-date"><span class="cal-num">'+dd+'</span><span class="cal-weekday">'+r.day+'</span></div><div class="cal-status">'+r.status+'</div>'+times+paid+payRates+'</div>';
    }).join('');
    days.innerHTML='<div class="month-calendar"><div class="calendar-head">'+headers.map(x=>'<div>'+x+'</div>').join('')+'</div><div class="calendar-grid">'+cells+'</div></div>';
  }
