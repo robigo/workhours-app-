@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="WorkTime">
-<link rel="manifest" href="./manifest.webmanifest?v=82">
+<link rel="manifest" href="./manifest.webmanifest?v=83">
 <title>WorkTime</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#102033;--muted:#6b7a90;--line:#e4eaf2;--blue:#2563eb;--violet:#7c3aed;--green:#047857;--red:#b91c1c;--shadow:0 10px 28px rgba(31,53,85,.08)}
@@ -269,7 +269,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v82</div>
+<div class="foot">WorkTime • גרסת מובייל • v83</div>
 </main>
 
 <script>
@@ -351,7 +351,7 @@ window.worktimeResetPassword=async function(){
  if(!email){if(msgEl)msgEl.textContent='הזן אימייל תחילה.';return}
  if(msgEl)msgEl.textContent='שולח קישור לאיפוס סיסמה…';
  try{
-   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=82&reset=1'});
+   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=83&reset=1'});
    if(msgEl)msgEl.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
  }catch(e){
    if(msgEl)msgEl.textContent='שגיאה בשליחת איפוס: '+(e?.message||e);
@@ -367,7 +367,7 @@ async function handleSupabaseAuthCallback(){
      if(s.error)throw s.error;
      const clean=new URL(window.location.href);
      clean.hash='';
-     clean.searchParams.set('v','82');
+     clean.searchParams.set('v','83');
      clean.searchParams.set('reset','1');
      history.replaceState(null,'',clean.pathname+'?'+clean.searchParams.toString());
      return s.data?.session||null;
@@ -385,7 +385,7 @@ async function handleSupabaseAuthCallback(){
  if(accessToken&&refreshToken){
    const result=await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
    if(result.error)throw result.error;
-   url.searchParams.set('v','82');
+   url.searchParams.set('v','83');
    url.searchParams.delete('handoff');
    url.hash='';
    history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
@@ -396,7 +396,7 @@ async function handleSupabaseAuthCallback(){
    const result=await sb.auth.exchangeCodeForSession(code);
    if(result.error)throw result.error;
    url.searchParams.delete('code');
-   url.searchParams.set('v','82');
+   url.searchParams.set('v','83');
    url.searchParams.delete('handoff');
    history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString());
    return result.data?.session||null;
@@ -475,7 +475,7 @@ async function ensurePushSubscription(){
 async function initPwaNotifications(){
  const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
  if(!('serviceWorker' in navigator)){help.textContent='הדפדפן הזה אינו תומך ב-Service Worker.';btn.disabled=true;return}
- try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=82');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
+ try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=83');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
  if(!('Notification' in window)){help.textContent='להתראות באייפון: הוסף את WorkTime למסך הבית ופתח אותה משם.';btn.disabled=true;return}
  if(Notification.permission==='granted'){
    btn.disabled=false;
@@ -1098,7 +1098,6 @@ function updateTodayCard(){
    todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד 17:00':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
  }else todayNote.textContent=entry.out?'הדיווח להיום הושלם':'לא בוצעה כניסה היום';
 }
-setInterval(updateTodayCard,1000);setInterval(checkPlannedShiftAlerts,30000);checkPlannedShiftAlerts();
 function render(){
  const year=+y.value;
  renderMonths();
@@ -1364,14 +1363,14 @@ document.getElementById('magicLinkBtn').addEventListener('click',async()=>{
  authMsg.textContent='שולח קישור כניסה חדש…';
  const {error}=await sb.auth.signInWithOtp({
    email,
-   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=82'}
+   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=83'}
  });
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח קישור כניסה חדש למייל. פתח את הקישור האחרון שקיבלת.';
 });
 document.getElementById('signUpBtn').addEventListener('click',async()=>{
  if(!requireCloud())return;
  authMsg.textContent='יוצר חשבון…';
- const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=82'}});
+ const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=83'}});
  if(error){authMsg.textContent='שגיאה: '+error.message;return}
  authMsg.textContent=data.session?'החשבון נוצר והתחברת.':'החשבון נוצר. בדוק את האימייל לאישור ההרשמה.';
  if(data.session) await refreshAuthUi(data.session);
@@ -1386,6 +1385,9 @@ document.getElementById('resendBtn').addEventListener('click',async()=>{
 });
 
 signOutBtn.addEventListener('click',async()=>{if(!requireCloud())return;await sb.auth.signOut();authMsg.textContent='התנתקת';activateMainTab('account');await refreshAuthUi(null)});
+
+// Start reminders after their state and all controls have initialized.
+setInterval(updateTodayCard,1000);setInterval(checkPlannedShiftAlerts,30000);checkPlannedShiftAlerts();
 
 // The full local UI starts immediately, including while a CDN is stalled.
 render();
