@@ -234,7 +234,7 @@
 <div id="salaryPeriod" class="period" style="background:#f1f5f9;color:#0f172a"></div>
 <button id="salaryAdvancedToggle" type="button" class="compact-toggle">הגדרות שכר וכללי חישוב ▾</button>
 <div id="salaryAdvanced" class="advanced-panel">
-<div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: 08:00–17:00 רגיל; כל זמן עבודה אחרי 17:00 = 125%. יום ו׳: שעות עד מכסת היום רגילות; מתוך השעות הנוספות 2 הראשונות = 125%, ומהשעה הנוספת השלישית = 150%. בחודש שנבחר, תקופת השכר היא מ־23 בחודש הקודם עד 22 בחודש הנבחר.</div>
+<div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: 08:00–17:00 רגיל; כל זמן עבודה אחרי 17:00 = 125%. יום ו׳: שעתיים ראשונות = 125%, ומהשעה השלישית = 150%. בחודש שנבחר, תקופת השכר היא מ־23 בחודש הקודם עד 22 בחודש הנבחר.</div>
 <div class="salarygrid">
 <label>שכר בסיס חודשי (₪)<input id="baseSalary" type="number" step="0.01" min="0" value="8500"></label>
 <label>תעריף שעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" value="46.70"></label>
@@ -269,7 +269,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v84</div>
+<div class="foot">WorkTime • גרסת מובייל • v85</div>
 </main>
 
 <script>
@@ -998,7 +998,7 @@ async function loadSalary(){
    salaryRegular.value=auto.regular.toFixed(2);
    salary125.value=auto.h125.toFixed(2);
    salary150.value=auto.h150.toFixed(2);
-   salaryNote.textContent='מחזור פתוח: מוצגים רק ימים עד היום. חושבו '+calculatedCount+' ימים עם זוג כניסה+יציאה; '+pendingCount+' ימים עד היום עדיין חסרים דיווח מלא. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳ רק השעות שמעבר למכסת היום הן נוספות: 2 הראשונות 125% ומהשלישית 150%.';
+   salaryNote.textContent='מחזור פתוח: מוצגים רק ימים עד היום. חושבו '+calculatedCount+' ימים עם זוג כניסה+יציאה; '+pendingCount+' ימים עד היום עדיין חסרים דיווח מלא. א׳–ה׳ אחרי 17:00 = 125%; ביום ו׳: שעתיים ראשונות 125% ומהשעה השלישית 150%.';
  } else if(state.reg!=null && (Number(state.reg)||Number(state.h125)||Number(state.h150))){
    salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
    salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
@@ -1022,7 +1022,7 @@ function calcSalary(saveState=true){
    '<div class="calcrow"><span>שכר בסיס</span><b>₪'+basePay.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>תקן / שעות רגילות מחושבות</span><b>'+std.toFixed(2)+' / '+reg.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>כלל א׳–ה׳</span><b>אחרי 17:00 → 125%</b></div>'+
-   '<div class="calcrow"><span>כלל יום ו׳</span><b>מעבר למכסת יום ו׳: 2 ש׳ 125%, היתר 150%</b></div>'+
+   '<div class="calcrow"><span>כלל יום ו׳</span><b>2 ש׳ ראשונות 125%, מהשלישית 150%</b></div>'+
    '<div class="calcrow"><span>125%</span><b>₪'+p125.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>150%</span><b>₪'+p150.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>שעות נוספות בתשלום</span><b>₪'+extraHPay.toFixed(2)+'</b></div>'+
