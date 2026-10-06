@@ -1,7 +1,7 @@
 {
   "name": "WorkTime",
   "short_name": "WorkTime",
-  "start_url": "./?v=87",
+  "start_url": "./?v=88",
   "display": "standalone",
   "background_color": "#f4f7fb",
   "theme_color": "#0f172a",
