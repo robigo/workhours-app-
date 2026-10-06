@@ -294,7 +294,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v87</div>
+<div class="foot">WorkTime • גרסת מובייל • v88</div>
 </main>
 
 <script>
@@ -563,10 +563,9 @@ const authBox=document.getElementById('authBox'), authToggle=document.getElement
  }
 }
 const initialNow=new Date();
-const savedMonth=Number(localStorage.getItem('worktimeSelectedMonth'));
-const savedYear=Number(localStorage.getItem('worktimeSelectedYear'));
-let m=(savedMonth>=1&&savedMonth<=12)?savedMonth:(initialNow.getMonth()+1), manualType='in';
-if(savedYear>=2025&&savedYear<=2027) y.value=String(savedYear); else y.value=String(initialNow.getFullYear());
+// Start each fresh app load on the current month; month changes remain available during use.
+let m=initialNow.getMonth()+1, manualType='in';
+y.value=String(initialNow.getFullYear());
 // Render month selector immediately so optional PWA/auth failures cannot leave it blank.
 queueMicrotask(()=>renderMonths());
 const known={
@@ -1337,9 +1336,9 @@ salaryTabBtn.addEventListener('click',async()=>{activateMainTab('salary');await 
 document.getElementById('salaryCalcBtn').addEventListener('click',()=>calcSalary(true));
 cloudSyncBtn.addEventListener('click',syncLocalAttendanceToCloud);
 [baseSalary,standardHours,hourlyRate,salaryExtras,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
-months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;localStorage.setItem('worktimeSelectedMonth',String(m));localStorage.setItem('worktimeSelectedYear',y.value);render()});
-months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;localStorage.setItem('worktimeSelectedMonth',String(m));localStorage.setItem('worktimeSelectedYear',y.value);render()},{passive:false});
-y.addEventListener('change',()=>{localStorage.setItem('worktimeSelectedYear',y.value);render()});
+months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
+months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;render()},{passive:false});
+y.addEventListener('change',()=>render());
 document.getElementById('inBtn').onclick=()=>setReport('in',hm());
 document.getElementById('outBtn').onclick=()=>setReport('out',hm());
 function runTodayQuickReport(type){
