@@ -39,6 +39,7 @@
 .settings-toggle{border:0;background:#eef2ff;color:#3730a3;border-radius:12px;padding:9px 11px;font:inherit;font-weight:900}
 .advanced-panel{display:none}.advanced-panel.show{display:block}
 .compact-toggle{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;font:inherit;font-weight:900;color:#334155;margin-top:10px}
+.report-subtabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0 8px;padding:5px;background:#e8eef8;border-radius:14px}.report-subbtn{min-width:0;border:1px solid transparent;background:transparent;border-radius:10px;padding:10px 5px;font:inherit;font-size:12px;font-weight:900;color:#526174}.report-subbtn.active{background:#fff;color:#0f172a;box-shadow:0 2px 8px rgba(31,53,85,.1)}.report-subpane{display:none}.report-subpane.active{display:block}
 .today-card{display:block;background:linear-gradient(135deg,#052e16,#166534);color:#fff;border-radius:18px;padding:15px;margin:8px 0 10px;box-shadow:var(--shadow)}
 .today-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.today-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;background:rgba(255,255,255,.14);padding:6px 9px;border-radius:999px}.today-status.offline{background:rgba(255,255,255,.12)}.today-timer{font-size:34px;font-weight:900;letter-spacing:1px;margin:10px 0 8px;direction:ltr;text-align:center}.today-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.today-metric{background:rgba(255,255,255,.11);border-radius:11px;padding:9px;text-align:center;font-size:10px}.today-metric b{display:block;font-size:15px;margin-top:4px}.today-progress{height:8px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden;margin-top:10px}.today-progress span{display:block;height:100%;background:#fff;border-radius:999px}.today-note{font-size:11px;color:#dcfce7;margin-top:7px;text-align:center}
 @media(max-width:680px){
@@ -54,6 +55,7 @@
  .grid{grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.today-grid{grid-template-columns:repeat(2,1fr)}.card{padding:9px;border-radius:13px;box-shadow:none}.value{font-size:17px}.label{font-size:10px}
  .report,.salarybox{margin-top:8px;padding:12px;border-radius:16px;box-shadow:none}
  .report h3{font-size:17px}
+ .report-subtabs{gap:5px}.report-subbtn{font-size:11px;padding:9px 3px}
  .report .controls{margin-top:9px}
  .report .actions{gap:7px}
  .report .btn{min-height:46px}
@@ -153,6 +155,12 @@
 </section>
 
 <div id="reportPane" class="tabpane active">
+<div class="report-subtabs" role="tablist" aria-label="אפשרויות דיווח שעות">
+<button type="button" id="reportTodayTabBtn" class="report-subbtn active" role="tab" aria-controls="reportTodayPane" aria-selected="true">היום</button>
+<button type="button" id="reportEntryTabBtn" class="report-subbtn" role="tab" aria-controls="reportEntryPane" aria-selected="false">דיווח / תיקון</button>
+<button type="button" id="reportHistoryTabBtn" class="report-subbtn" role="tab" aria-controls="reportHistoryPane" aria-selected="false">היסטוריה</button>
+</div>
+<div id="reportTodayPane" class="report-subpane active" role="tabpanel" aria-labelledby="reportTodayTabBtn">
 <div id="shiftAlert" class="report" style="display:none;border:2px solid #f59e0b;background:#fffbeb">
 <strong id="shiftAlertText"></strong>
 <div class="actions">
@@ -173,7 +181,8 @@
 <div id="todayNote" class="today-note">לא בוצעה כניסה היום</div>
 </section>
 <section id="summary" class="grid"></section><section id="dayTypeSummary" class="grid" style="margin-top:0"></section>
-
+</div>
+<div id="reportEntryPane" class="report-subpane" role="tabpanel" aria-labelledby="reportEntryTabBtn">
 <section class="report">
 <h3>דיווח כניסה / יציאה</h3>
 <div id="reportPeriod" class="hint"></div>
@@ -217,10 +226,15 @@
 <button id="clearEditBtn" class="btn clearedit">בטל תיקון ידני</button>
 </div>
 </div>
+</section>
+</div>
+<div id="reportHistoryPane" class="report-subpane" role="tabpanel" aria-labelledby="reportHistoryTabBtn">
+<section class="report">
+<h3>היסטוריית דיווחים</h3>
 <button id="attendanceLogToggle" type="button" class="compact-toggle">הצג היסטוריית דיווחים ▾</button>
 <div id="attendanceLogWrap" class="advanced-panel"><div id="log" class="log"></div></div>
 </section>
-
+</div>
 </div>
 
 <div id="calendarPane" class="tabpane">
@@ -288,6 +302,18 @@
   const hero=document.getElementById('periodHero');if(hero)hero.hidden=which==='account';
  }
  document.addEventListener('click',event=>{
+  const subButton=event.target.closest('.report-subbtn');
+  if(subButton){
+   document.querySelectorAll('.report-subbtn').forEach(button=>{
+    const selected=button===subButton;
+    button.classList.toggle('active',selected);
+    button.setAttribute('aria-selected',selected?'true':'false');
+   });
+   document.querySelectorAll('.report-subpane').forEach(pane=>{
+    pane.classList.toggle('active',pane.id===subButton.getAttribute('aria-controls'));
+   });
+   return;
+  }
   const button=event.target.closest('.tabbtn');if(!button)return;
   const which=Object.keys(panes).find(key=>panes[key][0]===button.id);
   if(which)showTab(which);
@@ -1459,3 +1485,4 @@ restoreCloudSession().catch(e=>{
 </script>
 </body>
 </html>
+
