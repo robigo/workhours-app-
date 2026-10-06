@@ -39,7 +39,7 @@
 .settings-toggle{border:0;background:#eef2ff;color:#3730a3;border-radius:12px;padding:9px 11px;font:inherit;font-weight:900}
 .advanced-panel{display:none}.advanced-panel.show{display:block}
 .compact-toggle{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;font:inherit;font-weight:900;color:#334155;margin-top:10px}
-.report-subtabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0 8px;padding:5px;background:#e8eef8;border-radius:14px}.report-subbtn{min-width:0;border:1px solid transparent;background:transparent;border-radius:10px;padding:10px 5px;font:inherit;font-size:12px;font-weight:900;color:#526174}.report-subbtn.active{background:#fff;color:#0f172a;box-shadow:0 2px 8px rgba(31,53,85,.1)}.report-subpane{display:none}.report-subpane.active{display:block}
+.report-subtabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0 8px;padding:5px;background:#e8eef8;border-radius:14px}.report-subbtn{min-width:0;border:1px solid transparent;background:transparent;border-radius:10px;padding:10px 5px;font:inherit;font-size:12px;font-weight:900;color:#526174}.report-subbtn.active{background:#fff;color:#0f172a;box-shadow:0 2px 8px rgba(31,53,85,.1)}.report-subpane{display:none}.report-subpane.active{display:block}.today-quick-report{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin:9px 0;box-shadow:var(--shadow)}.today-quick-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}.today-quick-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:9px}.today-quick-msg{min-height:16px;margin-top:7px;font-size:12px;color:var(--muted);text-align:center}
 .today-card{display:block;background:linear-gradient(135deg,#052e16,#166534);color:#fff;border-radius:18px;padding:15px;margin:8px 0 10px;box-shadow:var(--shadow)}
 .today-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.today-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;background:rgba(255,255,255,.14);padding:6px 9px;border-radius:999px}.today-status.offline{background:rgba(255,255,255,.12)}.today-timer{font-size:34px;font-weight:900;letter-spacing:1px;margin:10px 0 8px;direction:ltr;text-align:center}.today-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.today-metric{background:rgba(255,255,255,.11);border-radius:11px;padding:9px;text-align:center;font-size:10px}.today-metric b{display:block;font-size:15px;margin-top:4px}.today-progress{height:8px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden;margin-top:10px}.today-progress span{display:block;height:100%;background:#fff;border-radius:999px}.today-note{font-size:11px;color:#dcfce7;margin-top:7px;text-align:center}
 @media(max-width:680px){
@@ -56,6 +56,7 @@
  .report,.salarybox{margin-top:8px;padding:12px;border-radius:16px;box-shadow:none}
  .report h3{font-size:17px}
  .report-subtabs{gap:5px}.report-subbtn{font-size:11px;padding:9px 3px}
+ .today-quick-report{padding:10px;box-shadow:none}.today-quick-actions{gap:6px}.today-quick-actions .btn{padding:10px 6px;font-size:12px}
  .report .controls{margin-top:9px}
  .report .actions{gap:7px}
  .report .btn{min-height:46px}
@@ -180,6 +181,14 @@
 <div class="today-progress"><span id="todayProgressBar" style="width:0%"></span></div>
 <div id="todayNote" class="today-note">לא בוצעה כניסה היום</div>
 </section>
+<div class="today-quick-report" aria-label="דיווח מהיר">
+<div class="today-quick-head"><strong>דיווח מהיר</strong><span id="todayQuickDate" class="hint"></span></div>
+<div class="today-quick-actions">
+<button type="button" id="todayInQuickBtn" class="btn in">דווח כניסה כעת</button>
+<button type="button" id="todayOutQuickBtn" class="btn out">דווח יציאה כעת</button>
+</div>
+<div id="todayQuickMsg" class="today-quick-msg" aria-live="polite"></div>
+</div>
 <section id="summary" class="grid"></section><section id="dayTypeSummary" class="grid" style="margin-top:0"></section>
 </div>
 <div id="reportEntryPane" class="report-subpane" role="tabpanel" aria-labelledby="reportEntryTabBtn">
@@ -1155,6 +1164,7 @@ function setupReporting(){
  date.max=isoLocal(b)>todayIso?todayIso:isoLocal(b);
  const now=new Date(); now.setHours(12,0,0,0); const pick=now<a?a:(now>b?b:now);
  if(!date.value||date.value<date.min||date.value>date.max) date.value=isoLocal(pick);
+ updateTodayQuickDate();
  document.getElementById('reportPeriod').innerHTML='דיווח עבור חודש <strong dir="ltr">'+pad(m)+'/'+year+'</strong>';
  renderLog();
  updateManualTimeMax();
@@ -1173,6 +1183,12 @@ function updateClosedPeriodUi(){
    const close=payrollCloseForDate(date.value);
    msg.textContent='מחזור השכר של התאריך הזה נסגר ב־'+pad(close.getDate())+'/'+pad(close.getMonth()+1)+'/'+close.getFullYear()+'. צפייה בלבד.';
  }
+}
+function updateTodayQuickDate(){
+ const el=document.getElementById('todayQuickDate');
+ if(!el||!date.value)return;
+ const [yy,mm,dd]=date.value.split('-');
+ el.textContent='לתאריך '+dd+'/'+mm+'/'+yy;
 }
 function updateManualTimeMax(){
  const todayIso=isoLocal(new Date());
@@ -1326,9 +1342,15 @@ months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)
 y.addEventListener('change',()=>{localStorage.setItem('worktimeSelectedYear',y.value);render()});
 document.getElementById('inBtn').onclick=()=>setReport('in',hm());
 document.getElementById('outBtn').onclick=()=>setReport('out',hm());
+function runTodayQuickReport(type){
+ document.getElementById(type==='in'?'inBtn':'outBtn').click();
+ document.getElementById('todayQuickMsg').textContent=msg.textContent;
+}
+document.getElementById('todayInQuickBtn').onclick=()=>runTodayQuickReport('in');
+document.getElementById('todayOutQuickBtn').onclick=()=>runTodayQuickReport('out');
 document.getElementById('manualInBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}setReport('in',time.value)};
 document.getElementById('manualOutBtn').onclick=()=>{if(!time.value){msg.textContent='הזן שעה ידנית.';return}if(isFutureDateTime(date.value,time.value)){if(!validatePayrollOpen(date.value,msg))return;setPlannedExit(date.value,time.value);return}setReport('out',time.value)};
-date.addEventListener('change',()=>{updateManualTimeMax();updateClosedPeriodUi();loadEditorForDate()});
+date.addEventListener('change',()=>{updateTodayQuickDate();updateManualTimeMax();updateClosedPeriodUi();loadEditorForDate()});
 shiftDate.addEventListener('change',()=>{const ps=plannedShifts()[shiftDate.value]||{};shiftStart.value=ps.start||'';shiftEnd.value=ps.end||'';shiftMsg.textContent=''});
 document.getElementById('saveDayTypeBtn').onclick=()=>{if(!date.value){msg.textContent='בחר תאריך.';return}if(!validatePayrollOpen(date.value,msg))return;const all=dayTypes();if(dayType.value)all[date.value]=dayType.value;else delete all[date.value];saveDayTypes(all);msg.textContent=dayType.value?'סוג היום נשמר: '+dayType.value:'סוג היום חזר לברירת המחדל.';renderCalendarMonth(+y.value,m)};
 document.getElementById('clearDayTypeBtn').onclick=()=>{if(!date.value)return;if(!validatePayrollOpen(date.value,msg))return;const all=dayTypes();delete all[date.value];saveDayTypes(all);dayType.value='';msg.textContent='סוג היום נוקה.';renderCalendarMonth(+y.value,m)};
