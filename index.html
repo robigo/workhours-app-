@@ -40,7 +40,7 @@
 .advanced-panel{display:none}.advanced-panel.show{display:block}
 .compact-toggle{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;font:inherit;font-weight:900;color:#334155;margin-top:10px}
 .today-card{display:block;background:linear-gradient(135deg,#052e16,#166534);color:#fff;border-radius:18px;padding:15px;margin:8px 0 10px;box-shadow:var(--shadow)}
-.today-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.today-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;background:rgba(255,255,255,.14);padding:6px 9px;border-radius:999px}.today-status.offline{background:rgba(255,255,255,.12)}.today-timer{font-size:34px;font-weight:900;letter-spacing:1px;margin:10px 0 8px;direction:ltr;text-align:center}.today-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.today-metric{background:rgba(255,255,255,.11);border-radius:11px;padding:9px;text-align:center;font-size:10px}.today-metric b{display:block;font-size:15px;margin-top:4px}.today-progress{height:8px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden;margin-top:10px}.today-progress span{display:block;height:100%;background:#fff;border-radius:999px}.today-note{font-size:11px;color:#dcfce7;margin-top:7px;text-align:center}
+.today-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.today-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;background:rgba(255,255,255,.14);padding:6px 9px;border-radius:999px}.today-status.offline{background:rgba(255,255,255,.12)}.today-timer{font-size:34px;font-weight:900;letter-spacing:1px;margin:10px 0 8px;direction:ltr;text-align:center}.today-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.today-metric{background:rgba(255,255,255,.11);border-radius:11px;padding:9px;text-align:center;font-size:10px}.today-metric b{display:block;font-size:15px;margin-top:4px}.today-progress{height:8px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden;margin-top:10px}.today-progress span{display:block;height:100%;background:#fff;border-radius:999px}.today-note{font-size:11px;color:#dcfce7;margin-top:7px;text-align:center}
 @media(max-width:680px){
  body{background:#f5f7fb}
  .app{padding:8px 10px 22px}
@@ -51,7 +51,7 @@
  .picker{margin-top:8px;padding:9px}.months{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding-bottom:0}
  .month{min-width:0;min-height:48px}.period{margin-top:7px;padding:8px 10px}
  .tabs{top:54px;margin:8px 0;padding:4px}.tabbtn{padding:10px}
- .grid{grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.card{padding:9px;border-radius:13px;box-shadow:none}.value{font-size:17px}.label{font-size:10px}
+ .grid{grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.today-grid{grid-template-columns:repeat(2,1fr)}.card{padding:9px;border-radius:13px;box-shadow:none}.value{font-size:17px}.label{font-size:10px}
  .report,.salarybox{margin-top:8px;padding:12px;border-radius:16px;box-shadow:none}
  .report h3{font-size:17px}
  .report .controls{margin-top:9px}
@@ -166,6 +166,7 @@
 <div class="today-grid">
 <div class="today-metric">כניסה<b id="todayIn">—</b></div>
 <div class="today-metric">125% היום<b id="today125">0.00</b></div>
+<div class="today-metric">150% היום<b id="today150">0.00</b></div>
 <div class="today-metric">שכר שנצבר<b id="todayPay">₪0</b></div>
 </div>
 <div class="today-progress"><span id="todayProgressBar" style="width:0%"></span></div>
@@ -514,7 +515,7 @@ const salaryRegular=document.getElementById('salaryRegular'), salary125=document
 const salaryPeriod=document.getElementById('salaryPeriod'), salaryGross=document.getElementById('salaryGross'), salaryBreakdown=document.getElementById('salaryBreakdown'), salaryNote=document.getElementById('salaryNote');
 const salaryNet=document.getElementById('salaryNet'), netBreakdown=document.getElementById('netBreakdown'), salaryDaysDetail=document.getElementById('salaryDaysDetail');
 const cloudSyncBtn=document.getElementById('cloudSyncBtn'), cloudSyncMsg=document.getElementById('cloudSyncMsg');
-const todayTitle=document.getElementById('todayTitle'),todayStatus=document.getElementById('todayStatus'),todayTimer=document.getElementById('todayTimer'),todayIn=document.getElementById('todayIn'),today125=document.getElementById('today125'),todayPay=document.getElementById('todayPay'),todayProgressBar=document.getElementById('todayProgressBar'),todayNote=document.getElementById('todayNote');
+const todayTitle=document.getElementById('todayTitle'),todayStatus=document.getElementById('todayStatus'),todayTimer=document.getElementById('todayTimer'),todayIn=document.getElementById('todayIn'),today125=document.getElementById('today125'),today150=document.getElementById('today150'),todayPay=document.getElementById('todayPay'),todayProgressBar=document.getElementById('todayProgressBar'),todayNote=document.getElementById('todayNote');
 const authBox=document.getElementById('authBox'), authToggle=document.getElementById('authToggle'), authEmail=document.getElementById('authEmail'), authPassword=document.getElementById('authPassword'), authMsg=document.getElementById('authMsg'), signOutBtn=document.getElementById('signOutBtn'), syncState=document.getElementById('syncState');
 {
  const qp=new URLSearchParams(location.search);
@@ -872,6 +873,10 @@ function getBestEntryForDate(d){
  if(r && r[3] && r[4] && r[3]!=='—' && r[4]!=='—') return {in:r[3],out:r[4]};
  return null;
 }
+function todayFridayStatusText(d,h125,h150){
+ if(d.getDay()!==5)return null;
+ return 'נצברו '+h125.toFixed(2)+' שעות 125% ו־'+h150.toFixed(2)+' שעות 150%';
+}
 function splitPayHoursForDay(d,entry){
  if(!entry||!entry.in||!entry.out)return {regular:0,h125:0,h150:0,total:0};
  let start=mins(entry.in), end=mins(entry.out);
@@ -1087,6 +1092,7 @@ function updateTodayCard(){
    const split=splitPayHoursForDay(now,temp);h125=split.h125||0;h150=split.h150||0;
  }
  today125.textContent=h125.toFixed(2);
+ today150.textContent=h150.toFixed(2);
  const rate=parseFloat(hourlyRate?.value)||46.70;
  const regularHours=Math.max(0,elapsed/3600-h125-h150);
  const pay=regularHours*rate+h125*rate*1.25+h150*rate*1.5;
@@ -1099,9 +1105,13 @@ function updateTodayCard(){
  }else if(active&&plannedExit){
    todayNote.textContent='יציאה מתוכננת: '+plannedExit+' • החישוב כרגע עד השעה הנוכחית';
  }else if(active){
-   const end17=new Date(iso+'T17:00:00');
-   const minsTo=Math.round((end17-now)/60000);
-   todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד 17:00':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
+   const fridayNote=todayFridayStatusText(now,h125,h150);
+   if(fridayNote)todayNote.textContent=fridayNote;
+   else{
+     const end17=new Date(iso+'T17:00:00');
+     const minsTo=Math.round((end17-now)/60000);
+     todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד 17:00':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
+   }
  }else todayNote.textContent=entry.out?'הדיווח להיום הושלם':'לא בוצעה כניסה היום';
 }
 function render(){
