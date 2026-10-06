@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="WorkTime">
-<link rel="manifest" href="./manifest.webmanifest?v=83">
+<link rel="manifest" href="./manifest.webmanifest?v=87">
 <title>WorkTime</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#102033;--muted:#6b7a90;--line:#e4eaf2;--blue:#2563eb;--violet:#7c3aed;--green:#047857;--red:#b91c1c;--shadow:0 10px 28px rgba(31,53,85,.08)}
@@ -294,7 +294,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v86</div>
+<div class="foot">WorkTime • גרסת מובייל • v87</div>
 </main>
 
 <script>
@@ -512,7 +512,7 @@ async function ensurePushSubscription(){
 async function initPwaNotifications(){
  const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
  if(!('serviceWorker' in navigator)){help.textContent='הדפדפן הזה אינו תומך ב-Service Worker.';btn.disabled=true;return}
- try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=83');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
+ try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=87');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
  if(!('Notification' in window)){help.textContent='להתראות באייפון: הוסף את WorkTime למסך הבית ופתח אותה משם.';btn.disabled=true;return}
  if(Notification.permission==='granted'){
    btn.disabled=false;
