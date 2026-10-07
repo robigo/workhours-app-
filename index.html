@@ -259,7 +259,7 @@
 <div id="salaryPeriod" class="period" style="background:#f1f5f9;color:#0f172a"></div>
 <button id="salaryAdvancedToggle" type="button" class="compact-toggle">הגדרות שכר וכללי חישוב ▾</button>
 <div id="salaryAdvanced" class="advanced-panel">
-<div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: 8 שעות העבודה הראשונות לפי שעת הכניסה הן רגילות; לאחריהן 125%. יום ו׳: שעתיים ראשונות = 125%, ומהשעה השלישית = 150%. בחודש שנבחר, תקופת השכר היא מ־23 בחודש הקודם עד 22 בחודש הנבחר.</div>
+<div class="hint" style="margin-top:8px"><strong>חוק חישוב פעיל:</strong> א׳–ה׳: מנכים 30 דקות הפסקה; אחרי 8 שעות עבודה נטו = 125%. יום ו׳: אין ניכוי הפסקה; שעתיים ראשונות = 125%, ומהשעה השלישית = 150%. בחודש שנבחר, תקופת השכר היא מ־23 בחודש הקודם עד 22 בחודש הנבחר.</div>
 <div class="salarygrid">
 <label>שכר בסיס חודשי (₪)<input id="baseSalary" type="number" step="0.01" min="0" value="8500"></label>
 <label>תעריף שעה (₪)<input id="hourlyRate" type="number" step="0.01" min="0" value="46.70"></label>
@@ -939,8 +939,10 @@ function splitPayHoursForDay(d,entry){
    return {regular:0,h125:Math.min(2,total),h150:Math.max(0,total-2),total};
  }
  if(d.getDay()===6) return {regular:0,h125:0,h150:0,total};
- const regularMinutes=Math.min(8*60,total*60);
- const overtime125Minutes=Math.max(0,total*60-8*60);
+ const breakMinutes=30;
+ const paidMinutes=Math.max(0,total*60-breakMinutes);
+ const regularMinutes=Math.min(8*60,paidMinutes);
+ const overtime125Minutes=Math.max(0,paidMinutes-8*60);
  return {regular:regularMinutes/60,h125:overtime125Minutes/60,h150:0,total};
 }
 function calculatePeriodPayHours(year,month){
@@ -1048,7 +1050,7 @@ async function loadSalary(){
    salaryRegular.value=auto.regular.toFixed(2);
    salary125.value=auto.h125.toFixed(2);
    salary150.value=auto.h150.toFixed(2);
-   salaryNote.textContent='מחזור פתוח: מוצגים רק ימים עד היום. חושבו '+calculatedCount+' ימים עם זוג כניסה+יציאה; '+pendingCount+' ימים עד היום עדיין חסרים דיווח מלא. א׳–ה׳: אחרי 8 שעות מהכניסה = 125%; ביום ו׳: שעתיים ראשונות 125% ומהשעה השלישית 150%.';
+   salaryNote.textContent='מחזור פתוח: מוצגים רק ימים עד היום. חושבו '+calculatedCount+' ימים עם זוג כניסה+יציאה; '+pendingCount+' ימים עד היום עדיין חסרים דיווח מלא. א׳–ה׳: אחרי 8 שעות נטו (בניכוי 30 דקות הפסקה) = 125%; ביום ו׳: ללא ניכוי הפסקה, שעתיים ראשונות 125% ומהשלישית 150%.';
  } else if(state.reg!=null && (Number(state.reg)||Number(state.h125)||Number(state.h150))){
    salaryRegular.value=state.reg; salary125.value=state.h125||0; salary150.value=state.h150||0;
    salaryNote.textContent='אין כרגע דיווחי כניסה/יציאה מלאים בתקופה; מוצגת החלוקה הידנית השמורה.';
@@ -1071,7 +1073,7 @@ function calcSalary(saveState=true){
    '<div class="calcrow"><span>תקופת שכר</span><b dir="ltr">'+salaryRange(+y.value,m)+'</b></div>'+
    '<div class="calcrow"><span>שכר בסיס</span><b>₪'+basePay.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>תקן / שעות רגילות מחושבות</span><b>'+std.toFixed(2)+' / '+reg.toFixed(2)+'</b></div>'+
-   '<div class="calcrow"><span>כלל א׳–ה׳</span><b>אחרי 8 שעות עבודה → 125%</b></div>'+
+   '<div class="calcrow"><span>כלל א׳–ה׳</span><b>אחרי 8 שעות נטו (30 דק׳ הפסקה) → 125%</b></div>'+
    '<div class="calcrow"><span>כלל יום ו׳</span><b>2 ש׳ ראשונות 125%, מהשלישית 150%</b></div>'+
    '<div class="calcrow"><span>125%</span><b>₪'+p125.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>150%</span><b>₪'+p150.toFixed(2)+'</b></div>'+
@@ -1123,18 +1125,17 @@ function updateTodayCard(){
  todayTimer.textContent=formatDuration(elapsed);
  todayStatus.textContent=active?'● בעבודה':'● '+(entry.out?'יום הושלם':'לא בעבודה');
  todayStatus.classList.toggle('offline',!active);
- let h125=0,h150=0;
+ let h125=0,h150=0,regularHours=0;
  if(entry.in){
    const temp={in:entry.in,out:entry.out||hm()};
-   const split=splitPayHoursForDay(now,temp);h125=split.h125||0;h150=split.h150||0;
+   const split=splitPayHoursForDay(now,temp);h125=split.h125||0;h150=split.h150||0;regularHours=split.regular||0;
  }
  today125.textContent=h125.toFixed(2);
  today150.textContent=h150.toFixed(2);
  const rate=parseFloat(hourlyRate?.value)||46.70;
- const regularHours=Math.max(0,elapsed/3600-h125-h150);
  const pay=regularHours*rate+h125*rate*1.25+h150*rate*1.5;
  todayPay.textContent='₪'+pay.toFixed(0);
- const target=8*3600; todayProgressBar.style.width=Math.min(100,(elapsed/target)*100).toFixed(1)+'%';
+ const target=8.5*3600; todayProgressBar.style.width=Math.min(100,(elapsed/target)*100).toFixed(1)+'%';
  if(entryFuture){
    todayNote.textContent='קיים דיווח כניסה עתידי ('+rawEntry.in+') — הוא לא ייכלל עד שהשעה תגיע.';
  }else if(exitFuture){
@@ -1146,9 +1147,9 @@ function updateTodayCard(){
    if(fridayNote)todayNote.textContent=fridayNote;
    else{
      const start=new Date(iso+'T'+entry.in+':00');
-     const overtimeStart=new Date(start.getTime()+8*3600000);
+     const overtimeStart=new Date(start.getTime()+8.5*3600000);
      const minsTo=Math.max(0,Math.ceil((overtimeStart-now)/60000));
-     todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד השלמת 8 שעות עבודה':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
+     todayNote.textContent=minsTo>0?'עוד '+minsTo+' דקות עד השלמת 8 שעות עבודה נטו (בניכוי הפסקה)':(h125>0?'נצברו '+h125.toFixed(2)+' שעות 125%':'שעות נוספות פעילות');
    }
  }else todayNote.textContent=entry.out?'הדיווח להיום הושלם':'לא בוצעה כניסה היום';
 }
