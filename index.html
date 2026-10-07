@@ -824,7 +824,8 @@ function renderCalendarMonth(year,month){
    const iso=isoLocal(d);
    const prevMonth = month===1?12:month-1;
    const prevYear = month===1?year-1:year;
-   const live=(saved[year+'-'+month]||{})[iso] || (saved[prevYear+'-'+prevMonth]||{})[iso] || {};
+   const localLive=(saved[year+'-'+month]||{})[iso] || (saved[prevYear+'-'+prevMonth]||{})[iso] || {};
+   const live=dbEntriesByDate[iso] || localLive;
    const r=verified[dd];
    const e=corrected[iso];
    if(e && (e.in||e.out)){
