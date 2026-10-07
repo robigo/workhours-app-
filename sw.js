@@ -1,4 +1,4 @@
-const CACHE='worktime-v89';
+const CACHE='worktime-v90';
 self.addEventListener('install',()=>self.skipWaiting());
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 self.addEventListener('push',event=>{
