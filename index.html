@@ -294,7 +294,7 @@
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v93</div>
+<div class="foot">WorkTime • גרסת מובייל • v94</div>
 </main>
 
 <script>
@@ -942,8 +942,8 @@ function splitPayHoursForDay(d,entry){
  const breakMinutes=30;
  const paidMinutes=Math.max(0,total*60-breakMinutes);
  const regularMinutes=Math.min(8*60,paidMinutes);
- const overtime125Minutes=Math.min(2*60,Math.max(0,paidMinutes-8*60));
- const overtime150Minutes=Math.max(0,paidMinutes-10*60);
+ const overtime125Minutes=Math.min(1*60,Math.max(0,paidMinutes-8*60));
+ const overtime150Minutes=Math.max(0,paidMinutes-9*60);
  return {regular:regularMinutes/60,h125:overtime125Minutes/60,h150:overtime150Minutes/60,total};
 }
 function calculatePeriodPayHours(year,month){
