@@ -16,7 +16,7 @@ for (let i = open; i < source.length; i++) {
 }
 assert.notEqual(end, -1, 'unterminated calcSalary');
 
-const el = value => ({ value: String(value), textContent: '', innerHTML: '' });
+const el = value => ({ value: String(value), textContent: '', innerHTML: '', style: {} });
 const state = {};
 const reconciliation = el('');
 const context = {
