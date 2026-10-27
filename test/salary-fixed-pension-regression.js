@@ -5,6 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+assert.ok(source.includes('הקדמה לא מאושרת במשמרות שמתחילות ב־08:00'), 'deduction should be labeled for 08:00 shifts only');
 const start = source.indexOf('function calcSalary(');
 assert.notEqual(start, -1, 'missing calcSalary');
 const open = source.indexOf('{', start);
