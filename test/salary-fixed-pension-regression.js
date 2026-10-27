@@ -23,6 +23,7 @@ const context = {
   baseSalary: el(8500), standardHours: el(182), salaryExtras: el(100),
   salaryPaidExtraHours: el(0), salaryPensionDeduction: el(510),
   salaryGross: el(0), salaryBreakdown: el(0), salaryNet: el(0), netBreakdown: el(0), salaryNote: el(''),
+  document: { getElementById: id => id === 'salaryReportReconciliation' ? el('') : null },
   salaryRange: () => '23/09/2026 → 22/10/2026', y: { value: '2026' }, m: 10,
   currentUser: null, salaryStateKey: () => 'salary-state',
   localStorage: { setItem: (key, value) => { state[key] = value; } },
@@ -42,6 +43,9 @@ assert.ok(context.netBreakdown.innerHTML.includes('₪942.64'), 'mandatory deduc
 assert.ok(context.netBreakdown.innerHTML.includes('מס הכנסה לפי ההנחה כרגע'));
 assert.ok(context.netBreakdown.innerHTML.includes('₪0.00'), 'income tax should be zero under the current assumption');
 assert.equal(Number(context.salaryNet.textContent.replace(/[^0-9.]/g, '')), 11012.60, 'net should reflect September mandatory deductions and fixed pension');
+assert.ok(context.document.getElementById('salaryReportReconciliation').innerHTML.includes('5.76 ש׳'), 'October report reconciliation should show the 5.76-hour discrepancy');
+assert.ok(context.document.getElementById('salaryReportReconciliation').innerHTML.includes('₪403.49'), 'discrepancy value should use the 150% rate');
+assert.ok(context.document.getElementById('salaryReportReconciliation').innerHTML.includes('₪11164.77'), 'alternative scenario should avoid deducting the 2.35 hours twice');
 
 const firstNet = Number(context.salaryNet.textContent.replace(/[^0-9.]/g, ''));
 context.salaryPensionDeduction.value = '610';
