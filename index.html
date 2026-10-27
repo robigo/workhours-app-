@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="WorkTime">
-<link rel="manifest" href="./manifest.webmanifest?v=96">
+<link rel="manifest" href="./manifest.webmanifest?v=97">
 <title>WorkTime</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#102033;--muted:#6b7a90;--line:#e4eaf2;--blue:#2563eb;--violet:#7c3aed;--green:#047857;--red:#b91c1c;--shadow:0 10px 28px rgba(31,53,85,.08)}
@@ -270,6 +270,7 @@
 <label><span id="regularHoursLabel">שעות רגילות</span><input id="salaryRegular" type="number" step="0.01" min="0"></label>
 <label><span id="hours125Label">שעות 125%</span><input id="salary125" type="number" step="0.01" min="0"></label>
 <label><span id="hours150Label">שעות 150%</span><input id="salary150" type="number" step="0.01" min="0"></label>
+<label>הקדמה לא מאושרת לקיזוז מ־150% (שעות)<input id="salaryUnauthorizedEarlyHours" type="number" step="0.01" min="0" value="0"></label>
 <label>שעות בתשלום נוספות<input id="salaryPaidExtraHours" type="number" step="0.01" min="0" value="0"></label>
 </div></div>
 <div class="actions">
@@ -290,12 +291,12 @@
 <label for="salaryPensionDeduction" class="hint" style="display:grid;gap:5px;margin-top:9px">הפרשת גמל/פנסיה קבועה (₪)<input id="salaryPensionDeduction" type="number" step="0.01" min="0" value="510" style="width:100%;border:1px solid var(--line);border-radius:11px;padding:10px;font:inherit;color:#0f172a"></label>
 <div id="salaryNet" class="big">₪0.00</div>
 <div id="netBreakdown" class="calcrows"></div>
-<div class="hint" style="margin-top:9px">ניכויי חובה נאמדים לפי שיעור מתלוש אוגוסט 2026; גמל/פנסיה מנוכים לפי הסכום שהוזן. הניכויים בפועל עשויים להשתנות.</div>
+<div class="hint" style="margin-top:9px">ניכויי חובה נאמדים לפי תלוש ספטמבר 2026 (כ־7.56%); מס הכנסה מוצג כ־₪0 לפי ההנחה הנוכחית עד תחילת שנת המס הבאה. גמל/פנסיה מנוכים לפי הסכום שהוזן. הניכויים בפועל עשויים להשתנות.</div>
 </div>
 </section>
 </div>
 
-<div class="foot">WorkTime • גרסת מובייל • v96</div>
+<div class="foot">WorkTime • גרסת מובייל • v97</div>
 </main>
 
 <script>
@@ -389,7 +390,7 @@ window.worktimeResetPassword=async function(){
  if(!email){if(msgEl)msgEl.textContent='הזן אימייל תחילה.';return}
  if(msgEl)msgEl.textContent='שולח קישור לאיפוס סיסמה…';
  try{
-   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=96&reset=1'});
+   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://robigo.github.io/workhours-app-/?v=97&reset=1'});
    if(msgEl)msgEl.textContent=error?'שגיאה: '+error.message:'נשלח מייל לאיפוס סיסמה.';
  }catch(e){
    if(msgEl)msgEl.textContent='שגיאה בשליחת איפוס: '+(e?.message||e);
@@ -513,7 +514,7 @@ async function ensurePushSubscription(){
 async function initPwaNotifications(){
  const help=document.getElementById('pushHelp'),btn=document.getElementById('enableNotificationsBtn');
  if(!('serviceWorker' in navigator)){help.textContent='הדפדפן הזה אינו תומך ב-Service Worker.';btn.disabled=true;return}
- try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=96');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
+ try{swRegistration=await navigator.serviceWorker.register('./sw.js?v=97');}catch(e){help.textContent='לא ניתן להפעיל Service Worker.';btn.disabled=true;return}
  if(!('Notification' in window)){help.textContent='להתראות באייפון: הוסף את WorkTime למסך הבית ופתח אותה משם.';btn.disabled=true;return}
  if(Notification.permission==='granted'){
    btn.disabled=false;
@@ -547,7 +548,7 @@ const reportPane=document.getElementById('reportPane'), calendarPane=document.ge
 const reportTabBtn=document.getElementById('reportTabBtn'), calendarTabBtn=document.getElementById('calendarTabBtn'), salaryTabBtn=document.getElementById('salaryTabBtn');
 const baseSalary=document.getElementById('baseSalary'), standardHours=document.getElementById('standardHours');
 const hourlyRate=document.getElementById('hourlyRate'), salaryExtras=document.getElementById('salaryExtras');
-const salaryRegular=document.getElementById('salaryRegular'), salary125=document.getElementById('salary125'), salary150=document.getElementById('salary150'), salaryPaidExtraHours=document.getElementById('salaryPaidExtraHours');
+const salaryRegular=document.getElementById('salaryRegular'), salary125=document.getElementById('salary125'), salary150=document.getElementById('salary150'), salaryUnauthorizedEarlyHours=document.getElementById('salaryUnauthorizedEarlyHours'), salaryPaidExtraHours=document.getElementById('salaryPaidExtraHours');
 const salaryPeriod=document.getElementById('salaryPeriod'), salaryGross=document.getElementById('salaryGross'), salaryBreakdown=document.getElementById('salaryBreakdown'), salaryNote=document.getElementById('salaryNote');
 const salaryNet=document.getElementById('salaryNet'), netBreakdown=document.getElementById('netBreakdown'), salaryDaysDetail=document.getElementById('salaryDaysDetail'), salaryPensionDeduction=document.getElementById('salaryPensionDeduction');
 const cloudSyncBtn=document.getElementById('cloudSyncBtn'), cloudSyncMsg=document.getElementById('cloudSyncMsg');
@@ -1019,6 +1020,7 @@ async function loadSalary(){
  salaryExtras.value=(state.extras!=null && Number(state.extras)>0)?Number(state.extras):100;
  salaryPensionDeduction.value=state.pensionDeduction??510;
  salaryPaidExtraHours.value=state.extraHours??0;
+  salaryUnauthorizedEarlyHours.value=state.unauthorizedEarlyHours??(year===2026&&m===10?2.35:0);
  const auto=calculatePeriodPayHours(year,m);
  const missing=auto.details.filter(x=>x.status!=='נכלל');
  const officialClosed=official && Array.isArray(official.sum) && official.sum.length>=4;
@@ -1067,11 +1069,14 @@ function calcSalary(saveState=true){
  const rate=parseFloat(hourlyRate.value)||46.70, reg=parseFloat(salaryRegular.value)||0, h125=parseFloat(salary125.value)||0, h150=parseFloat(salary150.value)||0;
  const base=parseFloat(baseSalary.value)||8500, std=parseFloat(standardHours.value)||182;
  const extraH=parseFloat(salaryPaidExtraHours.value)||0, extras=parseFloat(salaryExtras.value)||0;
+ const unauthorizedEarlyHours=Math.max(0,parseFloat(salaryUnauthorizedEarlyHours.value)||0);
+ const deductedEarlyHours=Math.min(unauthorizedEarlyHours,Math.max(0,h150));
+ const earlyDeduction=deductedEarlyHours*rate*1.5;
  const pensionDeduction=Math.max(0,parseFloat(salaryPensionDeduction.value)||0);
- const basePay=base, p125=h125*rate*1.25, p150=h150*rate*1.5, extraHPay=extraH*rate, gross=basePay+p125+p150+extraHPay+extras;
- const AUG_GROSS=11881.95, AUG_NET=10513.93, AUG_MANDATORY=858.02;
- const mandatoryRatio=AUG_MANDATORY/AUG_GROSS;
- const estMandatory=gross*mandatoryRatio, estPension=pensionDeduction, net=gross-estMandatory-estPension;
+ const basePay=base, p125=h125*rate*1.25, payableHours150=Math.max(0,h150-deductedEarlyHours), p150=payableHours150*rate*1.5, extraHPay=extraH*rate, gross=basePay+p125+p150+extraHPay+extras;
+ const SEP_GROSS=11926.21, SEP_MANDATORY=901.88, SEP_NET=10514.33;
+ const mandatoryRatio=SEP_MANDATORY/SEP_GROSS;
+ const estMandatory=gross*mandatoryRatio, estPension=pensionDeduction, estIncomeTax=0, net=gross-estMandatory-estPension-estIncomeTax;
  salaryGross.textContent='₪'+gross.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
  salaryBreakdown.innerHTML=
    '<div class="calcrow"><span>תקופת שכר</span><b dir="ltr">'+salaryRange(+y.value,m)+'</b></div>'+
@@ -1080,20 +1085,22 @@ function calcSalary(saveState=true){
    '<div class="calcrow"><span>כלל א׳–ה׳</span><b>8:36 שעות רגילות; 2 השעות הבאות ב־125%; אחרי 10:36 שעות בתשלום → 150%</b></div>'+
    '<div class="calcrow"><span>כלל יום ו׳</span><b>2 ש׳ ראשונות 125%, מהשלישית 150%</b></div>'+
    '<div class="calcrow"><span>125%</span><b>₪'+p125.toFixed(2)+'</b></div>'+
-   '<div class="calcrow"><span>150%</span><b>₪'+p150.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>שעות 150% לתשלום</span><b>'+payableHours150.toFixed(2)+' ש׳ — ₪'+p150.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>קיזוז הקדמה לא מאושרת מ־150%</span><b>'+deductedEarlyHours.toFixed(2)+' ש׳ — ‎−₪'+earlyDeduction.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>שעות נוספות בתשלום</span><b>₪'+extraHPay.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>תוספות קבועות</span><b>₪'+extras.toFixed(2)+'</b></div>';
  salaryNet.textContent='₪'+net.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
  netBreakdown.innerHTML=
-   '<div class="calcrow"><span>ניכויי חובה משוערים</span><b>₪'+estMandatory.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>ביטוח לאומי ומס בריאות משוערים</span><b>₪'+estMandatory.toFixed(2)+'</b></div>'+
+   '<div class="calcrow"><span>מס הכנסה לפי ההנחה כרגע</span><b>₪'+estIncomeTax.toFixed(2)+'</b></div>'+
    '<div class="calcrow"><span>גמל/פנסיה — סכום קבוע</span><b>₪'+estPension.toFixed(2)+'</b></div>'+
-   '<div class="calcrow"><span>יחס נטו בתלוש הבסיס</span><b>'+((AUG_NET/AUG_GROSS)*100).toFixed(1)+'%</b></div>'+
+   '<div class="calcrow"><span>שיעור ניכויי חובה לפי ספטמבר</span><b>'+(mandatoryRatio*100).toFixed(2)+'%</b></div>'+
    '<div class="calcrow"><span>אוגוסט בפועל</span><b>₪10,513.93 נטו</b></div>'+
    '<div class="calcrow"><span>סיכום רשמי ספטמבר</span><b>35.50 ש׳ 125% | 17.90 ש׳ 150%</b></div>'+
    '<div class="calcrow"><span>ספטמבר בפועל</span><b>₪11,926.21 ברוטו | ₪10,514.33 נטו</b></div>';
  if(saveState){
    localStorage.setItem('worktimeHourlyRate',hourlyRate.value||'');
-   localStorage.setItem(salaryStateKey(),JSON.stringify({baseSalary:base,standardHours:std,rate:hourlyRate.value||'',extras,pensionDeduction,reg,h125,h150,extraHours:extraH}));
+   localStorage.setItem(salaryStateKey(),JSON.stringify({baseSalary:base,standardHours:std,rate:hourlyRate.value||'',extras,pensionDeduction,reg,h125,h150,extraHours:extraH,unauthorizedEarlyHours}));
    salaryNote.textContent=currentUser?'החישוב נשמר ומסונכרן. זהו אומדן ברוטו לפני מסים, פנסיה וניכויים.':'החישוב נשמר במכשיר. זהו אומדן ברוטו לפני מסים, פנסיה וניכויים.';
    dbSaveSalarySettings();
  }
@@ -1344,7 +1351,7 @@ calendarTabBtn.addEventListener('click',()=>activateMainTab('calendar'));
 salaryTabBtn.addEventListener('click',async()=>{activateMainTab('salary');await loadSalary()});
 document.getElementById('salaryCalcBtn').addEventListener('click',()=>calcSalary(true));
 cloudSyncBtn.addEventListener('click',syncLocalAttendanceToCloud);
-[baseSalary,standardHours,hourlyRate,salaryExtras,salaryPensionDeduction,salaryRegular,salary125,salary150,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
+[baseSalary,standardHours,hourlyRate,salaryExtras,salaryPensionDeduction,salaryRegular,salary125,salary150,salaryUnauthorizedEarlyHours,salaryPaidExtraHours].forEach(el=>el.addEventListener('input',()=>calcSalary(false)));
 months.addEventListener('click',e=>{const b=e.target.closest('.month');if(!b)return;m=+b.dataset.m;render()});
 months.addEventListener('touchend',e=>{const b=e.target.closest('.month');if(!b)return;e.preventDefault();m=+b.dataset.m;render()},{passive:false});
 y.addEventListener('change',()=>render());
@@ -1435,14 +1442,14 @@ document.getElementById('magicLinkBtn').addEventListener('click',async()=>{
  authMsg.textContent='שולח קישור כניסה חדש…';
  const {error}=await sb.auth.signInWithOtp({
    email,
-   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=96'}
+   options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=97'}
  });
  authMsg.textContent=error?'שגיאה: '+error.message:'נשלח קישור כניסה חדש למייל. פתח את הקישור האחרון שקיבלת.';
 });
 document.getElementById('signUpBtn').addEventListener('click',async()=>{
  if(!requireCloud())return;
  authMsg.textContent='יוצר חשבון…';
- const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=96'}});
+ const {data,error}=await sb.auth.signUp({email:authEmail.value.trim(),password:authPassword.value,options:{emailRedirectTo:'https://robigo.github.io/workhours-app-/?v=97'}});
  if(error){authMsg.textContent='שגיאה: '+error.message;return}
  authMsg.textContent=data.session?'החשבון נוצר והתחברת.':'החשבון נוצר. בדוק את האימייל לאישור ההרשמה.';
  if(data.session) await refreshAuthUi(data.session);
