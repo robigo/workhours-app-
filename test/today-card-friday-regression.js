@@ -17,7 +17,7 @@ function extractFunction(name) {
 }
 const context = {};
 vm.createContext(context);
-vm.runInContext([extractFunction('mins'), extractFunction('splitPayHoursForDay'), extractFunction('todayFridayStatusText')].join('\n'), context);
+vm.runInContext([extractFunction('mins'), extractFunction('regularPayMinutesForDay'), extractFunction('splitPayHoursForDay'), extractFunction('todayFridayStatusText')].join('\n'), context);
 const weekday = new Date(2026, 9, 7, 12);
 const weekdaySplit = context.splitPayHoursForDay(weekday, { in: '06:00', out: '18:00' });
 assert.equal(weekdaySplit.regular, 8.6);
@@ -57,4 +57,34 @@ assert.doesNotMatch(note, /17:00/);
 assert.equal(context.todayFridayStatusText(new Date(2026, 9, 8, 12), 2, 4), null);
 assert.ok(source.includes('150% היום<b id="today150">'));
 assert.ok(source.includes('today150.textContent=h150.toFixed(2)'));
-console.log('PASS: Weekdays deduct a 30-minute break, use 8.6 regular hours then 2 hours at 125% and later hours at 150%; Friday still splits 2h at 125% and the rest at 150%.');
+console.log('PASS: Sunday-Wednesday deduct a 30-minute break, use 8.6 regular hours then 2 hours at 125% and later hours at 150%; Friday still splits 2h at 125% and the rest at 150%.');
+
+
+// Thursday's shorter regular allowance shifts both overtime boundaries one hour earlier.
+const thursday = new Date(2026, 9, 8, 12);
+function checkThursday(out, regular, h125, h150) {
+  const actual = context.splitPayHoursForDay(thursday, {in:'06:00', out});
+  for (const [key, value] of Object.entries({regular,h125,h150})) {
+    assert.ok(Math.abs(actual[key]-value)<1e-9, out+' '+key+': '+actual[key]);
+  }
+  assert.ok(Math.abs(actual.regular+actual.h125+actual.h150-Math.max(0,actual.total-0.5))<1e-9);
+}
+checkThursday('14:06',7.6,0,0);
+checkThursday('14:07',7.6,1/60,0);
+checkThursday('16:06',7.6,2,0);
+checkThursday('16:07',7.6,2,1/60);
+checkThursday('18:00',7.6,2,1.9);
+checkThursday('06:20',0,0,0);
+// Monthly aggregation must use the same weekday-specific split as the day cards.
+Object.assign(context, {
+ salaryBounds:()=>[new Date(2026,9,7,12),new Date(2026,9,8,12)],
+ isoLocal:d=>d.toISOString().slice(0,10),
+ getBestEntryForDate:()=>({in:'06:00',out:'18:00'})
+});
+vm.runInContext(extractFunction('calculatePeriodPayHours'),context);
+const period=context.calculatePeriodPayHours(2026,10);
+assert.equal(period.daysCount,2);
+assert.ok(Math.abs(period.regular-16.2)<1e-9);
+assert.ok(Math.abs(period.h125-4)<1e-9);
+assert.ok(Math.abs(period.h150-2.8)<1e-9);
+console.log('PASS: Thursday boundaries, break deduction, and monthly aggregation.');
